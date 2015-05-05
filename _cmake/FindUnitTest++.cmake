@@ -1,34 +1,45 @@
-# Try to find UnitTest++
-# Once done this will define
-# UNITTEST++_FOUND - system has the lib 
-# UNITTEST++_INCLUDE_DIRS - the path to include directory 
-# UNITTEST++_LIBRARIES - the libraries needed to use
-# UNITTEST++_DEFINITIONS - compiler switches required for using UnitTest++
+# set the default UNITTEST++_ROOT value
+IF(NOT UNITTEST++_ROOT)
+  SET(UNITTEST++_ROOT $ENV{UNITTEST++_ROOT} CACHE PATH "The UnitTest++ directory root.")
+ENDIF(NOT UNITTEST++_ROOT)
 
-find_package(PkgConfig)
-pkg_check_modules(PC_UNITTEST++ QUIET libunittest++)
-set(UNITTEST++_DEFINITIONS ${PC_UNITTEST++_CFLAGS_OTHER})
+FIND_LIBRARY(UNITTEST++_LIBRARY
+  NAMES
+    UnitTest++
+    UnitTest++.vsnet2005
+    UnitTest++.vsnet2008
+  PATHS
+    ${UNITTEST++_ROOT}/Release
+    3rd-party/UnitTest++/Release
+  DOC "The UnitTest++ library")
 
-# see if there is a brew path (useful when it is not /usr/local/)
-set(PC_HOMEBREW_PATH $ENV{HOMEBREW})
-if(PC_HOMEBREW_PATH)
-    set(PC_HOMEBREW_INCLUDE_DIRS "$ENV{HOMEBREW}/include")
-    set(PC_HOMEBREW_LIBRARY_DIRS "$ENV{HOMEBREW}/lib")
-endif()
+FIND_LIBRARY(UNITTEST++_LIBRARY_DEBUG
+  NAMES
+    UnitTest++
+    UnitTest++.vsnet2005
+    UnitTest++.vsnet2008
+  PATHS
+    ${UNITTEST++_ROOT}/Debug
+    3rd-party/UnitTest++/Debug
+  DOC "The UnitTest++ debug library")
 
-find_path(UNITTEST++_INCLUDE_DIR UnitTest++/UnitTest++.h
-    HINTS ${PC_UNITTEST++_INCLUDEDIR} ${PC_UNITTEST++_INCLUDE_DIRS} ${PC_HOMEBREW_INCLUDE_DIRS}
-    PATH_SUFFIXES UnitTest++ )
+IF(NOT UNITTEST++_LIBRARY_DEBUG)
+  SET(UNITTEST++_LIBRARY_DEBUG ${UNITTEST++_LIBRARY})
+  SET(UNITTEST++_LIBRARIES ${UNITTEST++_LIBRARY})
+ELSE()
+  SET(UNITTEST++_LIBRARIES
+    optimized ${UNITTEST++_LIBRARY}
+    debug ${UNITTEST++_LIBRARY_DEBUG}
+  )
+ENDIF()
 
-find_library(UNITTEST++_LIBRARY NAMES UnitTest++ libUnitTest++
-    HINTS ${PC_UNITTEST++_LIBDIR} ${PC_UNITTEST++_LIBRARY_DIRS} ${PC_HOMEBREW_LIBRARY_DIRS} )
+FIND_PATH(UNITTEST++_INCLUDE_DIR
+  NAMES UnitTest++.h
+  PATHS
+    ${UNITTEST++_ROOT}/src
+    3rd-party/UnitTest++/src
+  DOC "The UnitTest++ include files")
 
-set(UNITTEST++_LIBRARIES ${UNITTEST++_LIBRARY} )
-set(UNITTEST++_INCLUDE_DIRS ${UNITTEST++_INCLUDE_DIR} )
-
-include(FindPackageHandleStandardArgs) 
-find_package_handle_standard_args(UnitTest++ DEFAULT_MSG
-    UNITTEST++_LIBRARY UNITTEST++_INCLUDE_DIR)
-
-mark_as_advanced(UNITTEST++_INCLUDE_DIR UNITTEST++_LIBRARY)
- 
+INCLUDE(FindPackageHandleStandardArgs)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(UnitTest++ DEFAULT_MSG
+  UNITTEST++_LIBRARY UNITTEST++_INCLUDE_DIR)
