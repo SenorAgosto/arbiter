@@ -1,63 +1,63 @@
 #include "./platform/UnitTestSupport.hpp"
-#include <arbiter/details/SequenceCount.hpp>
+#include <arbiter/details/SequenceInfo.hpp>
 
 namespace {
 
-	TEST(verifyInstantiationOfSequenceCount)
+	TEST(verifyInstantiationOfSequenceInfo)
 	{
-		arbiter::details::SequenceCount<std::size_t> sequenceCount(0);
+		arbiter::details::SequenceInfo<std::size_t> sequenceInfo(0);
 		
-		CHECK_EQUAL(1U, sequenceCount.count());
-		CHECK_EQUAL(0U, sequenceCount.sequence());
+		CHECK_EQUAL(1U, sequenceInfo.count());
+		CHECK_EQUAL(0U, sequenceInfo.sequence());
 	}
 	
 	TEST(verifyInstantiationWithDefaultConstructor)
 	{
-		arbiter::details::SequenceCount<std::size_t> sequenceCount;
-		CHECK(sequenceCount.invalid());
+		arbiter::details::SequenceInfo<std::size_t> sequenceInfo;
+		CHECK(sequenceInfo.invalid());
 	}
 	
 	TEST(verifyInvalidate)
 	{
-		arbiter::details::SequenceCount<std::size_t> sequenceCount(0);
+		arbiter::details::SequenceInfo<std::size_t> sequenceInfo(0);
 		
-		CHECK(!sequenceCount.invalid());
-		sequenceCount.invalidate();
-		CHECK(sequenceCount.invalid());
+		CHECK(!sequenceInfo.invalid());
+		sequenceInfo.invalidate();
+		CHECK(sequenceInfo.invalid());
 	}
 
 	TEST(verifyPrefixIncrement)
 	{
-		arbiter::details::SequenceCount<std::size_t> sequenceCount(0);
+		arbiter::details::SequenceInfo<std::size_t> sequenceInfo(0);
 		
-		CHECK_EQUAL(1U, sequenceCount.count());
-		auto s = ++sequenceCount;
+		CHECK_EQUAL(1U, sequenceInfo.count());
+		auto s = ++sequenceInfo;
 		
 		CHECK_EQUAL(2U, s);
-		CHECK_EQUAL(2U, sequenceCount.count());
+		CHECK_EQUAL(2U, sequenceInfo.count());
 	}
 	
 	TEST(verifyPostfixIncrement)
 	{
-		arbiter::details::SequenceCount<std::size_t> sequenceCount(0);
+		arbiter::details::SequenceInfo<std::size_t> sequenceInfo(0);
 		
-		CHECK_EQUAL(1U, sequenceCount.count());
-		auto s = sequenceCount++;
+		CHECK_EQUAL(1U, sequenceInfo.count());
+		auto s = sequenceInfo++;
 		
 		CHECK_EQUAL(1U, s);
-		CHECK_EQUAL(2U, sequenceCount.count());
+		CHECK_EQUAL(2U, sequenceInfo.count());
 	}
 
 	TEST(verifySetters)
 	{
-		arbiter::details::SequenceCount<std::size_t> sequenceCount;
-		CHECK(sequenceCount.invalid());
+		arbiter::details::SequenceInfo<std::size_t> sequenceInfo;
+		CHECK(sequenceInfo.invalid());
 		
-		sequenceCount.count(100);
-		sequenceCount.sequence(15);
+		sequenceInfo.count(100);
+		sequenceInfo.sequence(15);
 
-		CHECK(!sequenceCount.invalid());
-		CHECK_EQUAL(100U, sequenceCount.count());
-		CHECK_EQUAL(15U, sequenceCount.sequence());
+		CHECK(!sequenceInfo.invalid());
+		CHECK_EQUAL(100U, sequenceInfo.count());
+		CHECK_EQUAL(15U, sequenceInfo.sequence());
 	}
 }

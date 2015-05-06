@@ -1,96 +1,93 @@
 #pragma once 
-#include <arbiter/details/LineSet.hpp>
 #include <cstddef>
 
 namespace arbiter { namespace details {
 
 	// A structure to hold a count of sequence numbers
-	template<typename SequenceType, std::size_t NumberOfLines>
+	template<typename SequenceType>
 	class SequenceInfo 
 	{
 	public:
-        using LineSet = details::LineSet<NumberOfLines>;
-
 		SequenceInfo();
-		SequenceInfo(const std::size_t lineId, const SequenceType sequence);
-        explicit SequenceInfo(const SequenceType sequence);
-
-        inline void insert(const std::size_t lineId);
-        inline bool has(const std::size_t lineId);
-
-        inline bool complete() const;
-        inline bool empty() const;
-
-        inline const LineSet& lines() const;
-
+		SequenceInfo(const SequenceType sequence);
+		
+		inline std::size_t operator++();		// prefix increment 
+		inline std::size_t operator++(int);   	// postfix increment 
+		
 		inline SequenceType sequence() const;
 		inline void sequence(const SequenceType seq);
 
+		inline std::size_t count() const;
+		inline void count(const std::size_t value);
+
+		inline void invalidate();
+		inline bool invalid() const;
+
 	private:
+		std::size_t count_;
 		SequenceType sequence_;
-        LineSet lines_;
 	};
 	
 
-	template<typename SequenceType, std::size_t NumberOfLines>
-	SequenceInfo<SequenceType, NumberOfLines>::SequenceInfo()
-        : sequence_()
+	template<typename SequenceType>
+	SequenceInfo<SequenceType>::SequenceInfo()
+		: count_(std::numeric_limits<std::size_t>::max())
+		, sequence_()
 	{
-        lines_.fill();
 	}
 	
-	template<typename SequenceType, std::size_t NumberOfLines>
-	SequenceInfo<SequenceType, NumberOfLines>::SequenceInfo(const std::size_t lineId, const SequenceType sequence)
-		: sequence_(sequence)
-	{
-        lines_.insert(lineId);
-	}
-
-	template<typename SequenceType, std::size_t NumberOfLines>
-	SequenceInfo<SequenceType, NumberOfLines>::SequenceInfo(const SequenceType sequence)
-		: sequence_(sequence)
+	template<typename SequenceType>
+	SequenceInfo<SequenceType>::SequenceInfo(const SequenceType sequence)
+		: count_(1)
+		, sequence_(sequence)
 	{
 	}
 
-	template<typename SequenceType, std::size_t NumberOfLines>
-	SequenceType SequenceInfo<SequenceType, NumberOfLines>::sequence() const
+	template<typename SequenceType>
+	std::size_t SequenceInfo<SequenceType>::operator++()
+	{
+		return ++count_;
+	}
+	
+	template<typename SequenceType>
+	std::size_t SequenceInfo<SequenceType>::operator++(int)
+	{
+		return count_++;
+	}
+	
+	template<typename SequenceType>
+	SequenceType SequenceInfo<SequenceType>::sequence() const 
 	{
 		return sequence_;
 	}
 	
-	template<typename SequenceType, std::size_t NumberOfLines>
-	void SequenceInfo<SequenceType, NumberOfLines>::sequence(const SequenceType seq)
+	template<typename SequenceType>
+	void SequenceInfo<SequenceType>::sequence(const SequenceType seq)
 	{
 		sequence_ = seq;
 	}
 
-    template<typename SequenceType, std::size_t NumberOfLines>
-    bool SequenceInfo<SequenceType, NumberOfLines>::complete() const
-    {
-        return lines_.complete();
-    }
+	template<typename SequenceType>
+	std::size_t SequenceInfo<SequenceType>::count() const 
+	{
+		return count_;
+	}
 
-    template<typename SequenceType, std::size_t NumberOfLines>
-    bool SequenceInfo<SequenceType, NumberOfLines>::empty() const
-    {
-        return lines_.empty();
-    }
+	template<typename SequenceType>
+	void SequenceInfo<SequenceType>::count(const std::size_t value) 
+	{
+		count_ = value;
+	}
+	
+	template<typename SequenceType>
+	void SequenceInfo<SequenceType>::invalidate()
+	{
+		count_ = std::numeric_limits<std::size_t>::max();
+	}
 
-    template<typename SequenceType, std::size_t NumberOfLines>
-    const typename SequenceInfo<SequenceType, NumberOfLines>::LineSet& SequenceInfo<SequenceType, NumberOfLines>::lines() const
-    {
-        return lines_;
-    }
-
-    template<typename SequenceType, std::size_t NumberOfLines>
-    void SequenceInfo<SequenceType, NumberOfLines>::insert(const std::size_t lineId)
-    {
-        lines_.insert(lineId);
-    }
-
-    template<typename SequenceType, std::size_t NumberOfLines>
-    bool SequenceInfo<SequenceType, NumberOfLines>::has(const std::size_t lineId)
-    {
-        return lines_[lineId];
-    }
+	template<typename SequenceType>
+	bool SequenceInfo<SequenceType>::invalid() const 
+	{
+		return count_ == std::numeric_limits<std::size_t>::max();
+	}	
 }}
