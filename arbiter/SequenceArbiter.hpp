@@ -1,5 +1,5 @@
 #pragma once 
-#include <arbiter/details/SequenceCount.hpp>
+#include <arbiter/details/SequenceInfo.hpp>
 
 #include <array>
 #include <cstddef>
@@ -39,11 +39,12 @@ namespace arbiter {
 		void reset();
 		
 	private:
-		
-		using SequenceCount = details::SequenceCount<SequenceType>;
+		using SequenceInfo = details::SequenceInfo<SequenceType>;
 		
 		std::array<std::size_t, Traits::NumberOfLines()> positions_;	// tracks where each line is in cache_.
-		std::array<SequenceCount, Traits::HistoryDepth()> cache_;	// stores the sequence counts
+		std::array<SequenceInfo, Traits::HistoryDepth()> cache_;	// stores the sequence counts
+
+		ErrorReportingPolicy errorPolicy_;
 	};
 	
 	
@@ -54,13 +55,14 @@ namespace arbiter {
 
 		for(auto& history : cache_)
 		{
-			history = SequenceCount();
-		}
+			history = SequenceInfo();
+        }
 	}
 	
 	template<class Traits>
-	bool SequenceArbiter<Traits>::validate(const std::size_t /*line*/, const SequenceType /*sequenceNumber*/)
+	bool SequenceArbiter<Traits>::validate(const std::size_t line, const SequenceType sequenceNumber)
 	{
+
 		// TODO: implement...
 		return false;
 	}
