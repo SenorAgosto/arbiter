@@ -54,9 +54,8 @@ else()
             -Wno-weak-vtables
             -Wno-disabled-macro-expansion
 
-            # love to leave this one, but calling functors
-            # like (*func)(arg); triggers the warning
-            -Wno-old-style-cast
+            # Temp...
+            -Wno-unneeded-member-function 
         )
     endif()
 
