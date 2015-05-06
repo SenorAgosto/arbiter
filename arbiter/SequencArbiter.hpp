@@ -52,9 +52,7 @@ namespace arbiter {
 
 		for(auto& history : cache_)
 		{
-			// construct fulfilled sequence counts in each 
-			// spot.
-			new (&history) SequenceCount(0, NumberOfLines);
+			history = SequenceCount();
 		}
 	}
 	
