@@ -1,5 +1,4 @@
 #pragma once 
-#include <arbiter/Gap.hpp>
 #include <cstddef>
 
 namespace arbiter { namespace details {
@@ -9,13 +8,15 @@ namespace arbiter { namespace details {
 	class SequenceCount 
 	{
 	public:
+		SequenceCount();
 		SequenceCount(const SequenceType sequence);
-		SequenceCount(const SequenceType sequence, const std::size_t count);
-		SequenceCount(const SequenceType sequence, const GapTag);
 		
 		inline std::size_t operator++();		// prefix increment 
 		inline std::size_t operator++(int);   	// postfix increment 
 		
+		inline void invalidate();
+		inline bool invalid() const;
+
 		inline SequenceType sequence() const;
 		inline std::size_t count() const;
 
@@ -24,24 +25,17 @@ namespace arbiter { namespace details {
 		SequenceType sequence_;
 	};
 	
+
+	template<typename SequenceType>
+	SequenceCount<SequenceType>::SequenceCount()
+		: count_(std::numeric_limits<std::size_t>::max())
+		, sequence_()
+	{
+	}
 	
 	template<typename SequenceType>
 	SequenceCount<SequenceType>::SequenceCount(const SequenceType sequence)
 		: count_(1)
-		, sequence_(sequence)
-	{
-	}
-
-	template<typename SequenceType>
-	SequenceCount<SequenceType>::SequenceCount(const SequenceType sequence, const std::size_t count)
-		: count_(count)
-		, sequence_(sequence)
-	{
-	}
-
-	template<typename SequenceType>
-	SequenceCount<SequenceType>::SequenceCount(const SequenceType sequence, const GapTag)
-		: count_(0)
 		, sequence_(sequence)
 	{
 	}
@@ -58,6 +52,18 @@ namespace arbiter { namespace details {
 		return count_++;
 	}
 	
+	template<typename SequenceType>
+	void SequenceCount<SequenceType>::invalidate()
+	{
+		count_ = std::numeric_limits<std::size_t>::max();
+	}
+
+	template<typename SequenceType>
+	bool SequenceCount<SequenceType>::invalid() const 
+	{
+		return count_ == std::numeric_limits<std::size_t>::max();
+	}
+
 	template<typename SequenceType>
 	SequenceType SequenceCount<SequenceType>::sequence() const 
 	{

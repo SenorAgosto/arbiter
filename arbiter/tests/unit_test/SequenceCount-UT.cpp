@@ -11,22 +11,21 @@ namespace {
 		CHECK_EQUAL(0U, sequenceCount.sequence());
 	}
 	
-	TEST(verifyInstantiationWithCount)
+	TEST(verifyInstantiationWithDefaultConstructor)
 	{
-		arbiter::details::SequenceCount<std::size_t> sequenceCount(0, 10);
-
-		CHECK_EQUAL(10U, sequenceCount.count());
-		CHECK_EQUAL(0U, sequenceCount.sequence());
+		arbiter::details::SequenceCount<std::size_t> sequenceCount;
+		CHECK(sequenceCount.invalid());
 	}
 	
-	TEST(verifyInstantiationWithGap)
+	TEST(verifyInvalidate)
 	{
-		arbiter::details::SequenceCount<std::size_t> sequenceCount(0, arbiter::gap);
+		arbiter::details::SequenceCount<std::size_t> sequenceCount(0);
 		
-		CHECK_EQUAL(0U, sequenceCount.count());
-		CHECK_EQUAL(0U, sequenceCount.sequence());
+		CHECK(!sequenceCount.invalid());
+		sequenceCount.invalidate();
+		CHECK(sequenceCount.invalid());
 	}
-	
+
 	TEST(verifyPrefixIncrement)
 	{
 		arbiter::details::SequenceCount<std::size_t> sequenceCount(0);
