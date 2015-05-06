@@ -1,7 +1,7 @@
 #pragma once 
-#include <arbiter/details/ArbiterCache.hpp>
-#include <arbiter/details/ArbiterCacheAdvancer.hpp>
+#include <arbiter/details/SequenceCount.hpp>
 
+#include <array>
 #include <cstddef>
 
 namespace arbiter {
@@ -22,43 +22,56 @@ namespace arbiter {
 	class SequenceArbiter 
 	{
 	public:
+		using FirstExpectedSequenceNumber = Traits::FirstExpectedSequenceNumber;
+		using NumberOfLines = Traits::NumberOfLines;
+
 		using SequenceType = typename Traits::SequenceType;
 		using ErrorReportingPolicy = typename Traits::ErrorReportingPolicy;
-
-		SequenceArbiter(ErrorReportingPolicy& errorPolicy);
 		
-		// Determine wether we should accept the @sequenceNumber or reject it
-        inline bool validate(const std::size_t line, const SequenceType sequenceNumber);
-
-        // Return SequenceArbiter to initial state.
-		inline void reset();
-
+		SequenceArbiter();
+		
+		// returns true if we should pass the message, false to discard.
+		bool validate(const std::size_t line, const SequenceType sequenceNumber);
+		
+		// return all positions to starting state.
+		void reset();
+		
 	private:
-
-		ErrorReportingPolicy& errorPolicy_;  // TODO: move this to policy holder idiom
-
-        details::ArbiterCache<Traits> cache_;
-        details::ArbiterCacheAdvancer<Traits> advance_;
-    };
+		
+		using SequenceCount = details::SequenceCount<SequenceType>;
+		
+		std::array<std::size_t, typename Traits::NumberOfLines> positions_;	// tracks where each line is in cache_.
+		std::array<SequenceCount, typename Traits::HistoryDepth> cache_;	// stores the sequence counts
+	};
 	
 	
 	template<class Traits>
-	SequenceArbiter<Traits>::SequenceArbiter(ErrorReportingPolicy& errorPolicy)
-        : errorPolicy_(errorPolicy)
-        , advance_(cache_, errorPolicy_)
+	SequenceArbiter<Traits>::SequenceArbiter()
 	{
-    }
+		reset();
+
+		for(auto& history : cache_)
+		{
+			history = SequenceCount();
+		}
+	}
+	
+	template<class Traits>
+	bool SequenceArbiter<Traits>::validate(const std::size_t line, const SequenceType sequenceNumber)
+	{
+		// TODO: implement...
+		return false;
+	}
 
 	template<class Traits>
 	void SequenceArbiter<Traits>::reset()
 	{
-        cache_.reset();
-        advance_.reset();
+		// TODO: reset first sequence number check
+		// I.e. check to see if we have a gap on the first
+		// recieved message.
+		for(auto& position : positions_)
+		{
+			position = std::numeric_limits<std::size_t>::max();
+		}
 	}
-
-	template<class Traits>
-	bool SequenceArbiter<Traits>::validate(const std::size_t line, const SequenceType sequenceNumber)
-	{
-        return advance_(line, sequenceNumber);
-    }
 }
