@@ -47,4 +47,17 @@ namespace {
 		CHECK_EQUAL(1U, s);
 		CHECK_EQUAL(2U, sequenceCount.count());
 	}
+
+	TEST(verifySetters)
+	{
+		arbiter::details::SequenceCount<std::size_t> sequenceCount;
+		CHECK(sequenceCount.invalid());
+		
+		sequenceCount.count(100);
+		sequenceCount.sequence(15);
+
+		CHECK(!sequenceCount.invalid());
+		CHECK_EQUAL(100U, sequenceCount.count());
+		CHECK_EQUAL(15U, sequenceCount.sequence());
+	}
 }
