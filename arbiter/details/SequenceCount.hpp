@@ -15,7 +15,10 @@ namespace arbiter { namespace details {
 		inline std::size_t operator++(int);   	// postfix increment 
 		
 		inline SequenceType sequence() const;
+		inline void sequence(const SequenceType seq);
+
 		inline std::size_t count() const;
+		inline void count(const std::size_t value);
 
 		inline void invalidate();
 		inline bool invalid() const;
@@ -59,11 +62,23 @@ namespace arbiter { namespace details {
 	}
 	
 	template<typename SequenceType>
+	void SequenceCount<SequenceType>::sequence(const SequenceType seq)
+	{
+		sequence_ = seq;
+	}
+
+	template<typename SequenceType>
 	std::size_t SequenceCount<SequenceType>::count() const 
 	{
 		return count_;
 	}
 
+	template<typename SequenceType>
+	void SequenceCount<SequenceType>::count(const std::size_t value) 
+	{
+		count_ = value;
+	}
+	
 	template<typename SequenceType>
 	void SequenceCount<SequenceType>::invalidate()
 	{
