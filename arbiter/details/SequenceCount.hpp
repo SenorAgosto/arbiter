@@ -14,11 +14,11 @@ namespace arbiter { namespace details {
 		inline std::size_t operator++();		// prefix increment 
 		inline std::size_t operator++(int);   	// postfix increment 
 		
-		inline void invalidate();
-		inline bool invalid() const;
-
 		inline SequenceType sequence() const;
 		inline std::size_t count() const;
+
+		inline void invalidate();
+		inline bool invalid() const;
 
 	private:
 		std::size_t count_;
@@ -53,18 +53,6 @@ namespace arbiter { namespace details {
 	}
 	
 	template<typename SequenceType>
-	void SequenceCount<SequenceType>::invalidate()
-	{
-		count_ = std::numeric_limits<std::size_t>::max();
-	}
-
-	template<typename SequenceType>
-	bool SequenceCount<SequenceType>::invalid() const 
-	{
-		return count_ == std::numeric_limits<std::size_t>::max();
-	}
-
-	template<typename SequenceType>
 	SequenceType SequenceCount<SequenceType>::sequence() const 
 	{
 		return sequence_;
@@ -75,4 +63,16 @@ namespace arbiter { namespace details {
 	{
 		return count_;
 	}
+
+	template<typename SequenceType>
+	void SequenceCount<SequenceType>::invalidate()
+	{
+		count_ = std::numeric_limits<std::size_t>::max();
+	}
+
+	template<typename SequenceType>
+	bool SequenceCount<SequenceType>::invalid() const 
+	{
+		return count_ == std::numeric_limits<std::size_t>::max();
+	}	
 }}
