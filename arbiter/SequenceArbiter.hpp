@@ -22,11 +22,13 @@ namespace arbiter {
 	class SequenceArbiter 
 	{
 	public:
-		using FirstExpectedSequenceNumber = Traits::FirstExpectedSequenceNumber;
-		using NumberOfLines = Traits::NumberOfLines;
-
 		using SequenceType = typename Traits::SequenceType;
 		using ErrorReportingPolicy = typename Traits::ErrorReportingPolicy;
+		
+		// verify Traits has these constexpr functions...
+		static_assert(std::is_same<SequenceType, decltype(Traits::FirstExpectedSequenceNumber())>::value, "Traits::FirstExpectedSequenceNumber() has mismatched type. Type must be the same as SequenceType");
+		static_assert(std::is_same<std::size_t, decltype(Traits::NumberOfLines())>::value, "Traits::NumberOfLines() doesn't return expected type.");
+		static_assert(std::is_same<std::size_t, decltype(Traits::HistoryDepth())>::value, "Traits::HistoryDepth() doesn't return expected type.");
 		
 		SequenceArbiter();
 		
@@ -40,8 +42,8 @@ namespace arbiter {
 		
 		using SequenceCount = details::SequenceCount<SequenceType>;
 		
-		std::array<std::size_t, typename Traits::NumberOfLines> positions_;	// tracks where each line is in cache_.
-		std::array<SequenceCount, typename Traits::HistoryDepth> cache_;	// stores the sequence counts
+		std::array<std::size_t, Traits::NumberOfLines()> positions_;	// tracks where each line is in cache_.
+		std::array<SequenceCount, Traits::HistoryDepth()> cache_;	// stores the sequence counts
 	};
 	
 	
@@ -57,7 +59,7 @@ namespace arbiter {
 	}
 	
 	template<class Traits>
-	bool SequenceArbiter<Traits>::validate(const std::size_t line, const SequenceType sequenceNumber)
+	bool SequenceArbiter<Traits>::validate(const std::size_t /*line*/, const SequenceType /*sequenceNumber*/)
 	{
 		// TODO: implement...
 		return false;
