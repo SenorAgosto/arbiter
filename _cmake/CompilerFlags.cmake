@@ -56,6 +56,7 @@ else()
 
             # Temp...
             -Wno-unneeded-member-function 
+            -Wno-unused-member-function
         )
     endif()
 
