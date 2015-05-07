@@ -39,4 +39,16 @@ namespace {
         CHECK(set[0]);
         CHECK(set[1]);
     }
+
+    TEST(verifyCount)
+    {
+        arbiter::details::LineSet<2> set;
+        CHECK_EQUAL(0U, set.count());
+
+        set.insert(0);
+        CHECK_EQUAL(1U, set.count());
+
+        set.insert(1);
+        CHECK_EQUAL(2U, set.count());
+    }
 }
