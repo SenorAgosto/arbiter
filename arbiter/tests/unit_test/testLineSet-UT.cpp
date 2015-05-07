@@ -1,5 +1,6 @@
 #include "./platform/UnitTestSupport.hpp"
 #include <arbiter/details/LineSet.hpp>
+#include <stdexcept>
 
 namespace {
 
@@ -80,5 +81,11 @@ namespace {
         /*REQUIRE*/ CHECK_EQUAL(2U, missing.size());
         CHECK_EQUAL(0U, missing[0]);
         CHECK_EQUAL(2U, missing[1]);
+    }
+
+    TEST(verifyThrowsOnOutOfRange)
+    {
+        arbiter::details::LineSet<2> set;
+        CHECK_THROW(set.insert(4), std::out_of_range);
     }
 }
