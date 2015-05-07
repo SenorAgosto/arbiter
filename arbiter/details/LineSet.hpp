@@ -1,5 +1,7 @@
 #pragma once 
 #include <bitset>
+#include <cstddef>
+#include <vector>
 
 namespace arbiter { namespace details {
 
@@ -9,13 +11,14 @@ namespace arbiter { namespace details {
     class LineSet
     {
     public:
-        // returns false if lineId is already in the set.
-        bool insert(const std::size_t lineId);
-        bool complete() const;   // returns true if all lines have reported
+
+        bool insert(const std::size_t lineId);  // false if lineId in set already
+        bool complete() const;   // true if all lines in set
 
         bool operator[](const std::size_t index);
 
         std::size_t count() const;
+        std::vector<std::size_t> missing() const;
 
     private:
         std::bitset<NumberOfLines> value_;
@@ -47,5 +50,21 @@ namespace arbiter { namespace details {
     std::size_t LineSet<NumberOfLines>::count() const
     {
         return value_.count();
+    }
+
+    template<std::size_t NumberOfLines>
+    std::vector<std::size_t> LineSet<NumberOfLines>::missing() const
+    {
+        std::vector<std::size_t> missingLines;
+
+        for(std::size_t i = 0, end = value_.size(); i < end; ++i)
+        {
+            if(!value_[i])
+            {
+                missingLines.emplace_back(i);
+            }
+        }
+
+        return missingLines;
     }
 }}

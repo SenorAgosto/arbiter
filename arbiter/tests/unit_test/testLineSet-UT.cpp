@@ -63,4 +63,22 @@ namespace {
         set.insert(1);
         CHECK(set.complete());
     }
+
+    TEST(verifyMissingLines)
+    {
+        arbiter::details::LineSet<3> set;
+        auto missing = set.missing();
+
+        /*REQUIRE*/ CHECK_EQUAL(3U, missing.size());
+        CHECK_EQUAL(0U, missing[0]);
+        CHECK_EQUAL(1U, missing[1]);
+        CHECK_EQUAL(2U, missing[2]);
+
+        set.insert(1);
+        missing = set.missing();
+
+        /*REQUIRE*/ CHECK_EQUAL(2U, missing.size());
+        CHECK_EQUAL(0U, missing[0]);
+        CHECK_EQUAL(2U, missing[1]);
+    }
 }
