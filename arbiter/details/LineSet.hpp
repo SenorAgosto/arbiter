@@ -11,7 +11,7 @@ namespace arbiter { namespace details {
     public:
         // returns false if lineId is already in the set.
         bool insert(const std::size_t lineId);
-        bool missing() const;   // returns true if there are lines missing.
+        bool complete() const;   // returns true if all lines have reported
 
         bool operator[](const std::size_t index);
 
@@ -32,9 +32,9 @@ namespace arbiter { namespace details {
     }
 
     template<std::size_t NumberOfLines>
-    bool LineSet<NumberOfLines>::missing() const
+    bool LineSet<NumberOfLines>::complete() const
     {
-        return value_.count() != NumberOfLines;
+        return value_.count() == NumberOfLines;
     }
 
     template<std::size_t NumberOfLines>

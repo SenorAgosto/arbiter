@@ -51,4 +51,16 @@ namespace {
         set.insert(1);
         CHECK_EQUAL(2U, set.count());
     }
+
+    TEST(verifyComplete)
+    {
+        arbiter::details::LineSet<2> set;
+        CHECK(!set.complete());
+
+        set.insert(0);
+        CHECK(!set.complete());
+
+        set.insert(1);
+        CHECK(set.complete());
+    }
 }
