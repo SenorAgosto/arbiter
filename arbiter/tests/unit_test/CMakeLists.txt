@@ -11,7 +11,6 @@ if(WIN32)
 	include_directories("\\lib\\x64\\vc110\\UnitTestxx\\1.4\\include")
 	include_directories("\\lib\\x64\\vc110\\VLD\\2.2.3\\include")
 
-	link_directories("\\lib\\x64\\vc110\\Boost\\1.52.0\\lib")
 	link_directories("\\lib\\x64\\vc110\\VLD\\2.2.3\\lib")
 	
 	set(UNITTEST++_LIBRARIES "\\lib\\x64\\vc110\\UnitTestxx\\1.4\\lib\\debug\\UnitTest++.lib")
@@ -20,7 +19,6 @@ else()
 	set(UNITTEST++_LIBRARIES "/Volumes/austirg/homebrew/lib/libUnitTest++.a")
 	#find_package(UnitTest++ REQUIRED)
 
-	find_package(tbb 4.2 REQUIRED)
 endif()
 
 add_executable( arbiter-UT ${implementation_files} ${interface_files} ${platform_files})
@@ -28,8 +26,6 @@ add_executable( arbiter-UT ${implementation_files} ${interface_files} ${platform
 target_link_libraries( arbiter-UT
 					   arbiter 
 					   ${UNITTEST++_LIBRARIES}
-					   #${Boost_LIBRARIES}
-					   ${TBB_LIBRARIES}
 					 )
 					
 if(WIN32) 
