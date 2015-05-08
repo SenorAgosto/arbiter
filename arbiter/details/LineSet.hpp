@@ -20,6 +20,8 @@ namespace arbiter { namespace details {
         std::size_t count() const;
         std::vector<std::size_t> missing() const;
 
+        void fill();
+
     private:
         std::bitset<NumberOfLines> value_;
     };
@@ -66,5 +68,11 @@ namespace arbiter { namespace details {
         }
 
         return missingLines;
+    }
+
+    template<std::size_t NumberOfLines>
+    void LineSet<NumberOfLines>::fill()
+    {
+        value_.set();
     }
 }}

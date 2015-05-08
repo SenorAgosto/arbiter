@@ -88,4 +88,13 @@ namespace {
         arbiter::details::LineSet<2> set;
         CHECK_THROW(set.insert(4), std::out_of_range);
     }
+
+    TEST(verifyFill)
+    {
+        arbiter::details::LineSet<3> set;
+        CHECK(!set.complete());
+
+        set.fill();
+        CHECK(set.complete());
+    }
 }
