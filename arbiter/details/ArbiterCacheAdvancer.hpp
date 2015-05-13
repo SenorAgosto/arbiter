@@ -25,9 +25,6 @@ namespace arbiter { namespace details {
         // advance the cache position for @lineId up to @sequenceNumber
         bool operator()(const std::size_t lineId, const SequenceType sequenceNumber);
 
-        // reset the state of the ArbiterCacheAdvancer
-        void reset();
-
     private:
         ArbiterCacheAdvancerStateEnum determineState(const std::size_t lineId, const SequenceType sequenceNumber);
 
@@ -36,9 +33,8 @@ namespace arbiter { namespace details {
         ArbiterCache<Traits>& cache_;
         ErrorReportingPolicy& errorPolicy_;
 
-        bool isFirstCall_;
-
         ArbiterCacheAdvancerContext<Traits> context_;
+        bool isFirstCall_;
     };
 
 
@@ -46,26 +42,26 @@ namespace arbiter { namespace details {
     ArbiterCacheAdvancer<Traits>::ArbiterCacheAdvancer(ArbiterCache<Traits>& cache, ErrorReportingPolicy& error)
         : cache_(cache)
         , errorPolicy_(error)
+        , context_(cache, error)
         , isFirstCall_(true)
-        , context_(cache, error, isFirstCall_)
     {
     }
 
     template<class Traits>
-    inline
     bool ArbiterCacheAdvancer<Traits>::operator()(const std::size_t lineId, const SequenceType sequenceNumber)
     {
-        return states_.advance(determineState(lineId, sequenceNumber), context_, lineId, sequenceNumber);
+        ArbiterCacheAdvancerStateEnum state = determineState(lineId, sequenceNumber);
+        return states_[state].advance(context_, lineId, sequenceNumber);
     }
 
     template<class Traits>
     ArbiterCacheAdvancerStateEnum ArbiterCacheAdvancer<Traits>::determineState(const std::size_t lineId, const SequenceType sequenceNumber)
     {
-        const auto linePosition = cache_.positions[lineId];
-        const auto currentSequenceNumber = cache_.history[linePosition].sequence();
+        const auto linePosition = cache_.positions_[lineId];
+        const auto currentSequenceNumber = cache_.history_[linePosition].sequence();
 
         const bool isNext = currentSequenceNumber + 1 == sequenceNumber;
-        bool isHead = lineId == cache_.head;
+        const bool isHead = lineId == cache_.head_;
 
         if(isFirstCall_)
         {
@@ -75,13 +71,6 @@ namespace arbiter { namespace details {
 
         if(isNext)
         {
-            // if we over take the current head, mark this line as head...
-            if(linePosition == cache_.positions[cache_.head])
-            {
-                cache_.head = lineId;
-                isHead = true;
-            }
-
             return isHead ?
                 ArbiterCacheAdvancerStateEnum::AdvanceHead :
                 ArbiterCacheAdvancerStateEnum::AdvanceLine;
@@ -95,11 +84,5 @@ namespace arbiter { namespace details {
         return isHead ?
             ArbiterCacheAdvancerStateEnum::HeadForwardGapFill :
             ArbiterCacheAdvancerStateEnum::LineForwardGapFill;
-    }
-
-    template<class Traits>
-    void ArbiterCacheAdvancer<Traits>::reset()
-    {
-        isFirstCall_ = true;
     }
 }}
