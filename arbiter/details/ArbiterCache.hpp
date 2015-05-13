@@ -1,18 +1,16 @@
-#pragma once
+#pragma once 
 #include <arbiter/details/SequenceInfo.hpp>
 
 #include <array>
 #include <cstddef>
-#include <limits>
 
 namespace arbiter { namespace details {
 
     template<class Traits>
     struct ArbiterCache
     {
-    public:
         using SequenceType = typename Traits::SequenceType;
-        using SeqInfo = details::SequenceInfo<SequenceType, Traits::NumberOfLines()>;
+        using SequenceInfo = details::SequenceInfo<SequenceType, Traits::NumberOfLines()>;
 
         // verify Traits has these constexpr functions...
 		static_assert(std::is_same<SequenceType, decltype(Traits::FirstExpectedSequenceNumber())>::value, "Traits::FirstExpectedSequenceNumber() has mismatched type. Type must be the same as SequenceType");
@@ -20,21 +18,18 @@ namespace arbiter { namespace details {
 		static_assert(std::is_same<std::size_t, decltype(Traits::HistoryDepth())>::value, "Traits::HistoryDepth() doesn't return expected type.");
 
         ArbiterCache();
-
         void reset();
-        std::size_t nextPosition(const std::size_t lineId); // return the next position in history for line.
 
-    public:
-		std::array<std::size_t, Traits::NumberOfLines()> positions;	// tracks where each line is in cache_.
-		std::array<SeqInfo, Traits::HistoryDepth()> history;      // stores the sequence counts.
+		std::array<std::size_t, Traits::NumberOfLines()> positions_;	// tracks where each line is in cache_.
+		std::array<SequenceInfo, Traits::HistoryDepth()> history_;      // stores the sequence counts.
 
-        std::size_t head;  // indicates the line which is ahead.
+        std::size_t head_;  // indicates the line which is ahead.
     };
 
 
     template<class Traits>
     ArbiterCache<Traits>::ArbiterCache()
-        : head(std::numeric_limits<std::size_t>::max())
+        : head_(0)
     {
         reset();
     }
@@ -42,22 +37,16 @@ namespace arbiter { namespace details {
     template<class Traits>
     void ArbiterCache<Traits>::reset()
     {
-        head = std::numeric_limits<std::size_t>::max();
+        head_ = 0;  // head line is line 0
 
-		for(auto& position : positions)
+		for(auto& position : positions_)
 		{
-			position = 0;
+			position = std::numeric_limits<std::size_t>::max();
 		}
 
-        for(auto& historyValue : history)
+        for(auto& history : history_)
         {
-            historyValue = SeqInfo();
+            history = SequenceInfo();
         }
-    }
-
-    template<class Traits>
-    std::size_t ArbiterCache<Traits>::nextPosition(const std::size_t lineId)
-    {
-        return (positions[lineId] + 1) % history.size();
     }
 }}
