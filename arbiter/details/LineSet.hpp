@@ -14,10 +14,10 @@ namespace arbiter { namespace details {
 
         bool insert(const std::size_t lineId);  // false if lineId in set already
         bool complete() const;   // true if all lines in set
+        bool empty() const;      // true if no lines are in set
 
         bool operator[](const std::size_t index);
 
-        std::size_t count() const;
         std::vector<std::size_t> missing() const;
 
         void fill();
@@ -43,15 +43,15 @@ namespace arbiter { namespace details {
     }
 
     template<std::size_t NumberOfLines>
-    bool LineSet<NumberOfLines>::operator[](const std::size_t index)
+    bool LineSet<NumberOfLines>::empty() const
     {
-        return value_[index];
+        return value_.count() == 0;
     }
 
     template<std::size_t NumberOfLines>
-    std::size_t LineSet<NumberOfLines>::count() const
+    bool LineSet<NumberOfLines>::operator[](const std::size_t index)
     {
-        return value_.count();
+        return value_[index];
     }
 
     template<std::size_t NumberOfLines>
