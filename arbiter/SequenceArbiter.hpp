@@ -1,6 +1,6 @@
 #pragma once 
+#include <arbiter/details/ArbiterCache.hpp>
 #include <arbiter/details/ArbiterCacheAdvancer.hpp>
-#include <arbiter/details/ArbiterState.hpp>
 
 #include <cstddef>
 
