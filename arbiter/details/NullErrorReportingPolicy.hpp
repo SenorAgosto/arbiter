@@ -10,8 +10,15 @@ namespace arbiter { namespace details {
 		
 		void Gap(const SequenceType /*start*/, const SequenceType /*length*/){}
 		void GapFill(const SequenceType /*start*/, const SequenceType /*length*/){}
-		
+
+        // called when head overruns a slow line (history wrapped around)
 		void LinePositionOverrun(const std::size_t /*slowLine*/, const std::size_t /*overrunByLine*/){}
-		void UnrecoverableGap(const std::size_t /*line*/, const SequenceType /*start*/, const SequenceType /*length*/){}	// reported if a sequence we're replacing has count of 0.
+
+        // called when we're overwriting a gap in the arbiter cache history.
+		void UnrecoverableGap(const SequenceType /*start*/){}
+
+        // called when we're overwriting a sequenceInfo in the cache history where 1 or more
+        // lines didn't report, but at least 1 line did report (not a gap, but a line gap)
+        void UnrecoverableLineGap(const std::size_t /*line*/, const SequenceType /*sequenceNumber*/){}
 	};
 }}
