@@ -9,13 +9,13 @@ namespace arbiter { namespace details {
     {
         using ErrorReportingPolicy = typename Traits::ErrorReportingPolicy;
 
-        ArbiterCacheAdvancerContext(ArbiterCache<Traits>& cache, ErrorReportingPolicy& errorPolicy)
-            : cache_(cache)
-            , errorPolicy_(errorPolicy)
+        ArbiterCacheAdvancerContext(ArbiterCache<Traits>& cacheIn, ErrorReportingPolicy& errorPolicyIn)
+            : cache(cacheIn)
+            , errorPolicy(errorPolicyIn)
         {
         }
 
-        ArbiterCache<Traits>& cache_;
-        ErrorReportingPolicy& errorPolicy_;
+        ArbiterCache<Traits>& cache;
+        ErrorReportingPolicy& errorPolicy;
     };
 }}
