@@ -57,11 +57,11 @@ namespace arbiter { namespace details {
     template<class Traits>
     ArbiterCacheAdvancerStateEnum ArbiterCacheAdvancer<Traits>::determineState(const std::size_t lineId, const SequenceType sequenceNumber)
     {
-        const auto linePosition = cache_.positions_[lineId];
-        const auto currentSequenceNumber = cache_.history_[linePosition].sequence();
+        const auto linePosition = cache_.positions[lineId];
+        const auto currentSequenceNumber = cache_.history[linePosition].sequence();
 
         const bool isNext = currentSequenceNumber + 1 == sequenceNumber;
-        const bool isHead = lineId == cache_.head_;
+        const bool isHead = lineId == cache_.head;
 
         if(isFirstCall_)
         {
