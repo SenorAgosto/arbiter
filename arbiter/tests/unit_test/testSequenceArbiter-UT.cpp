@@ -55,13 +55,29 @@ namespace {
         CHECK(arbiter.validate(0, 12));
     }
 
-/*
-    TEST(verifySequenceArbiterFirstMessage)
+    struct TwoLineTraits
     {
-        static const std::size_t lineId = 0;
-        arbiter::SequenceArbiter<SingleLineTraits> arbiter;
+        static constexpr std::size_t FirstExpectedSequenceNumber() { return 0; }
+        static constexpr std::size_t NumberOfLines() { return 2; }
+        static constexpr std::size_t HistoryDepth() { return 10; }
 
-        CHECK(arbiter.validate(lineId, 0));
+        using SequenceType = std::size_t;
+        using ErrorReportingPolicy = MockErrorReportingPolicy;
+    };
+
+    TEST(verifySequenceArbiterHandlesHappyPathForTwoLines)
+    {
+        arbiter::SequenceArbiter<TwoLineTraits> arbiter;
+
+        CHECK(arbiter.validate(1, 0));
+        CHECK(arbiter.validate(1, 1));
+        CHECK(!arbiter.validate(0, 0));
+        CHECK(!arbiter.validate(0, 1));
+
+        // TODO: implement AdvanceLine()
+        CHECK(arbiter.validate(0, 2));
+        CHECK(!arbiter.validate(1, 2));
+
+
     }
-*/
 }
