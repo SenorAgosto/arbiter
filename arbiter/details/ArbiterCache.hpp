@@ -23,16 +23,17 @@ namespace arbiter { namespace details {
         void reset();
         std::size_t nextPosition(const std::size_t lineId); // return the next position in history for line.
 
-		std::array<std::size_t, Traits::NumberOfLines()> positions_;	// tracks where each line is in cache_.
-		std::array<SequenceInfo, Traits::HistoryDepth()> history_;      // stores the sequence counts.
+    public:
+		std::array<std::size_t, Traits::NumberOfLines()> positions;	// tracks where each line is in cache_.
+		std::array<SequenceInfo, Traits::HistoryDepth()> history;      // stores the sequence counts.
 
-        std::size_t head_;  // indicates the line which is ahead.
+        std::size_t head;  // indicates the line which is ahead.
     };
 
 
     template<class Traits>
     ArbiterCache<Traits>::ArbiterCache()
-        : head_(0)
+        : head(0)
     {
         reset();
     }
@@ -40,14 +41,14 @@ namespace arbiter { namespace details {
     template<class Traits>
     void ArbiterCache<Traits>::reset()
     {
-        head_ = 0;  // head line is line 0
+        head = 0;  // head line is line 0
 
-		for(auto& position : positions_)
+		for(auto& position : positions)
 		{
 			position = std::numeric_limits<std::size_t>::max();
 		}
 
-        for(auto& history : history_)
+        for(auto& history : history)
         {
             history = SequenceInfo();
         }
