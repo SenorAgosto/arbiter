@@ -61,7 +61,7 @@ namespace arbiter { namespace details {
         const auto currentSequenceNumber = cache_.history[linePosition].sequence();
 
         const bool isNext = currentSequenceNumber + 1 == sequenceNumber;
-        const bool isHead = lineId == cache_.head;
+        bool isHead = lineId == cache_.head;
 
         if(isFirstCall_)
         {
@@ -71,6 +71,13 @@ namespace arbiter { namespace details {
 
         if(isNext)
         {
+            // if we over take the current head, mark this line as head...
+            if(linePosition == cache_.positions[cache_.head])
+            {
+                cache_.head = lineId;
+                isHead = true;
+            }
+
             return isHead ?
                 ArbiterCacheAdvancerStateEnum::AdvanceHead :
                 ArbiterCacheAdvancerStateEnum::AdvanceLine;
