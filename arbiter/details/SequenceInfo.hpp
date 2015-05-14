@@ -79,4 +79,10 @@ namespace arbiter { namespace details {
     {
         return lines_;
     }
+
+    template<typename SequenceType, std::size_t NumberOfLines>
+    void SequenceInfo<SequenceType, NumberOfLines>::insert(const std::size_t lineId)
+    {
+        lines_.insert(lineId);
+    }
 }}
