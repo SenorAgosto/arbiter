@@ -13,7 +13,7 @@ namespace arbiter { namespace details {
 
 		SequenceInfo();
 		SequenceInfo(const std::size_t lineId, const SequenceType sequence);
-        SequenceInfo(const SequenceType sequence);
+        explicit SequenceInfo(const SequenceType sequence);
 
         inline void insert(const std::size_t lineId);
         inline bool complete() const;
@@ -74,4 +74,9 @@ namespace arbiter { namespace details {
         return lines_.empty();
     }
 
+    template<typename SequenceType, std::size_t NumberOfLines>
+    const typename SequenceInfo<SequenceType, NumberOfLines>::LineSet& SequenceInfo<SequenceType, NumberOfLines>::lines() const
+    {
+        return lines_;
+    }
 }}
