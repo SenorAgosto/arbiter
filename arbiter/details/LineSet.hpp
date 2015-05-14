@@ -58,6 +58,7 @@ namespace arbiter { namespace details {
     std::vector<std::size_t> LineSet<NumberOfLines>::missing() const
     {
         std::vector<std::size_t> missingLines;
+        missingLines.reserve(NumberOfLines);
 
         for(std::size_t i = 0, end = value_.size(); i < end; ++i)
         {
