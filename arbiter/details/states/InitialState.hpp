@@ -37,7 +37,7 @@ namespace arbiter { namespace details {
 
         context.cache.history[position] = SequenceInfo(lineId, sequenceNumber);
 
-        context.cache.positions[lineId] = context.cache.nextPosition(lineId);
+        context.cache.positions[lineId] = position;
         context.cache.head = lineId;
 
         return true;

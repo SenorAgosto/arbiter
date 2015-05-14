@@ -50,7 +50,7 @@ namespace {
         CHECK(arbiter.validate(0, 6));
         CHECK(arbiter.validate(0, 7));
         CHECK(arbiter.validate(0, 8));
-        CHECK(arbiter.validate(0, 9));  // next message rolls over
+        CHECK(arbiter.validate(0, 9));  // next message rolls over history boundry.
         CHECK(arbiter.validate(0, 10));
         CHECK(arbiter.validate(0, 12));
     }
@@ -74,10 +74,32 @@ namespace {
         CHECK(!arbiter.validate(0, 0));
         CHECK(!arbiter.validate(0, 1));
 
-        // TODO: implement AdvanceLine()
         CHECK(arbiter.validate(0, 2));
         CHECK(!arbiter.validate(1, 2));
 
+        CHECK(arbiter.validate(0, 3));
+        CHECK(!arbiter.validate(1, 3));
 
+        CHECK(arbiter.validate(1, 4));
+        CHECK(arbiter.validate(1, 5));
+        CHECK(arbiter.validate(1, 6));
+        CHECK(arbiter.validate(1, 7));
+        CHECK(!arbiter.validate(0, 4));
+        CHECK(!arbiter.validate(0, 5));
+        CHECK(!arbiter.validate(0, 6));
+        CHECK(!arbiter.validate(0, 7));
+
+        CHECK(arbiter.validate(0, 8));
+        CHECK(!arbiter.validate(1,8));
+
+        CHECK(arbiter.validate(1,9));   // next message rolls over history boundry.
+        CHECK(arbiter.validate(1,10));
+        CHECK(arbiter.validate(1,11));
+        CHECK(arbiter.validate(1,12));
+
+        CHECK(!arbiter.validate(0, 9));
+        CHECK(!arbiter.validate(0, 10));
+        CHECK(!arbiter.validate(0, 11));
+        CHECK(!arbiter.validate(0, 12));
     }
 }

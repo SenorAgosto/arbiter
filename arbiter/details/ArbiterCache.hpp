@@ -33,7 +33,7 @@ namespace arbiter { namespace details {
 
     template<class Traits>
     ArbiterCache<Traits>::ArbiterCache()
-        : head(0)
+        : head(std::numeric_limits<std::size_t>::max())
     {
         reset();
     }
@@ -41,11 +41,11 @@ namespace arbiter { namespace details {
     template<class Traits>
     void ArbiterCache<Traits>::reset()
     {
-        head = 0;  // head line is line 0
+        head = std::numeric_limits<std::size_t>::max();
 
 		for(auto& position : positions)
 		{
-			position = std::numeric_limits<std::size_t>::max();
+			position = 0;
 		}
 
         for(auto& history : history)
