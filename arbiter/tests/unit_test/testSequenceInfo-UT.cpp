@@ -26,4 +26,13 @@ namespace {
         CHECK(sequenceInfo.complete());
         CHECK_EQUAL(0U, sequenceInfo.sequence());
     }
+
+    TEST(verifyGapReported)
+    {
+        // created a sequenceInfo with sequence 0, no lines reporting means this is a gap.
+        arbiter::details::SequenceInfo<std::size_t, 2> sequenceInfo(0);
+
+        CHECK(!sequenceInfo.complete());
+        CHECK(sequenceInfo.empty());
+    }
 }

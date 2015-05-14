@@ -17,6 +17,7 @@ namespace arbiter { namespace details {
 
         inline void insert(const std::size_t lineId);
         inline bool complete() const;
+        inline bool empty() const;
 
         inline const LineSet& lines() const;
 
@@ -66,4 +67,11 @@ namespace arbiter { namespace details {
     {
         return lines_.complete();
     }
+
+    template<typename SequenceType, std::size_t NumberOfLines>
+    bool SequenceInfo<SequenceType, NumberOfLines>::empty() const
+    {
+        return lines_.empty();
+    }
+
 }}
