@@ -9,6 +9,7 @@ namespace arbiter { namespace details {
     template<class Traits>
     struct ArbiterCache
     {
+    public:
         using SequenceType = typename Traits::SequenceType;
         using SequenceInfo = details::SequenceInfo<SequenceType, Traits::NumberOfLines()>;
 
@@ -18,7 +19,9 @@ namespace arbiter { namespace details {
 		static_assert(std::is_same<std::size_t, decltype(Traits::HistoryDepth())>::value, "Traits::HistoryDepth() doesn't return expected type.");
 
         ArbiterCache();
+
         void reset();
+        std::size_t nextPosition(const std::size_t lineId); // return the next position in history for line.
 
 		std::array<std::size_t, Traits::NumberOfLines()> positions_;	// tracks where each line is in cache_.
 		std::array<SequenceInfo, Traits::HistoryDepth()> history_;      // stores the sequence counts.
@@ -48,5 +51,11 @@ namespace arbiter { namespace details {
         {
             history = SequenceInfo();
         }
+    }
+
+    template<class Traits>
+    std::size_t ArbiterCache<Traits>::nextPosition(const std::size_t lineId)
+    {
+        return ++positions[lineId] % history.size();
     }
 }}
