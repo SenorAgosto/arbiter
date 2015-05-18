@@ -27,25 +27,24 @@ namespace arbiter { namespace details {
         auto currentSequenceNumber = cache.history[position].sequence();
 
         auto gapPosition = calculateGapPosition(cache.history.size(), position, currentSequenceNumber, sequenceNumber);
-
-        if(sequenceNumber != cache.history[gapPosition].sequence())
-        {
-            // TODO: handle gap fills where we had
-            // a large unrecoverable gap in-between...
-
-            // binary search for the sequence number
-        }
-
-        auto accept = cache.history[gapPosition].empty();
-        cache.history[gapPosition].insert(lineId);
+        auto sequenceMatch = sequenceNumber == cache.history[gapPosition].sequence();
+        auto accept = sequenceMatch && cache.history[gapPosition].empty();
 
         if(accept)
         {
+            cache.history[gapPosition].insert(lineId);
             context.errorPolicy.GapFill(sequenceNumber, 1);
         }
-        else if((cache.history[gapPosition].sequence() == sequenceNumber) && cache.history[gapPosition].has(lineId))
+        else if(sequenceMatch)
         {
-            context.errorPolicy.DuplicateOnLine(lineId, sequenceNumber);
+            if(!cache.history[gapPosition].has(lineId))
+            {
+                cache.history[gapPosition].insert(lineId);
+            }
+            else
+            {
+                context.errorPolicy.DuplicateOnLine(lineId, sequenceNumber);
+            }
         }
 
         return accept;
