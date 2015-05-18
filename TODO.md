@@ -2,6 +2,7 @@
 
 - AdvanceHead needs to handle slow-line overrun
 - InitialState needs to handle first sequence # gaps
+- GapFill needs to handle a gap fill into a range where we had an unrecoverable gap because the gap size was larger than we're configured to handle. 
 
 ### Think about 
 
