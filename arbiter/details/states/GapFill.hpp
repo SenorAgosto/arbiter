@@ -43,6 +43,10 @@ namespace arbiter { namespace details {
         {
             context.errorPolicy.GapFill(sequenceNumber, 1);
         }
+        else if((cache.history[gapPosition].sequence() == sequenceNumber) && cache.history[gapPosition].has(lineId))
+        {
+            context.errorPolicy.DuplicateOnLine(lineId, sequenceNumber);
+        }
 
         return accept;
     }
