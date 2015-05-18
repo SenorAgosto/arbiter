@@ -16,6 +16,8 @@ namespace arbiter { namespace details {
         explicit SequenceInfo(const SequenceType sequence);
 
         inline void insert(const std::size_t lineId);
+        inline bool has(const std::size_t lineId);
+
         inline bool complete() const;
         inline bool empty() const;
 
@@ -84,5 +86,11 @@ namespace arbiter { namespace details {
     void SequenceInfo<SequenceType, NumberOfLines>::insert(const std::size_t lineId)
     {
         lines_.insert(lineId);
+    }
+
+    template<typename SequenceType, std::size_t NumberOfLines>
+    bool SequenceInfo<SequenceType, NumberOfLines>::has(const std::size_t lineId)
+    {
+        return lines_[lineId];
     }
 }}
