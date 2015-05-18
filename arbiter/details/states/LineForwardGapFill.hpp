@@ -1,5 +1,7 @@
 #pragma once 
 #include <arbiter/details/ArbiterCacheAdvancerState.hpp>
+
+#include <arbiter/details/states/AdvanceHead.hpp>
 #include <arbiter/details/states/HeadForwardGapFill.hpp>
 
 namespace arbiter { namespace details {
@@ -24,17 +26,21 @@ namespace arbiter { namespace details {
 
         auto position = positions[lineId];
         auto headPosition = positions[cache.head];
-
         auto currentSequenceNumber = cache.history[position].sequence();
-        auto gapPosition = (position + sequenceNumber - currentSequenceNumber) % cache.history.size();
-        auto sequenceMatch = sequenceNumber == cache.history[gapPosition].sequence();
 
-        if(gapPosition > headPosition)
+        auto gapPosition = (position + sequenceNumber - currentSequenceNumber);
+        auto passesHead = (position < headPosition) && (gapPosition > headPosition);
+
+        gapPosition %= cache.history.size();   // stay inbounds of history buffer
+
+        if(passesHead)
         {
             return handleHeadOverrun(context, lineId, sequenceNumber);
         }
 
+        auto sequenceMatch = sequenceNumber == cache.history[gapPosition].sequence();
         bool accept = sequenceMatch && cache.history[gapPosition].empty();
+
         if(accept)
         {
             context.errorPolicy.GapFill(sequenceNumber, 1);
@@ -54,6 +60,20 @@ namespace arbiter { namespace details {
     template<class Traits>
     bool LineForwardGapFill<Traits>::handleHeadOverrun(ArbiterCacheAdvancerContext<Traits>& context, const std::size_t lineId, const SequenceType sequenceNumber)
     {
-        return false;
+        // this line becomes head...
+        context.cache.positions[lineId] = context.cache.positions[context.cache.head];
+        context.cache.head = lineId;
+
+        auto nextSequenceNumber = context.cache.history[context.cache.positions[lineId]].sequence() + 1;
+        bool isNext = sequenceNumber == nextSequenceNumber;
+
+        if(isNext)
+        {
+            AdvanceHead<Traits> advancer;
+            return advancer.advance(context, lineId, sequenceNumber);
+        }
+
+        HeadForwardGapFill<Traits> advancer;
+        return advancer.advance(context, lineId, sequenceNumber);
     }
 }}

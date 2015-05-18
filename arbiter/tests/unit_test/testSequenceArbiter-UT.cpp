@@ -302,4 +302,323 @@ namespace {
         CHECK_EQUAL(3U, gapFills[1].first);
         CHECK_EQUAL(5U, gapFills[2].first);
     }
+
+    TEST(verifySequenceArbiterHandlesGapFillsCorrectlyWhenForwardGapOvertakesHeadWithTwoLines)
+    {
+        MockErrorReportingPolicy errorPolicy;
+        arbiter::SequenceArbiter<TwoLineTraits> arbiter(errorPolicy);
+
+        CHECK(arbiter.validate(0, 0));
+        CHECK(!arbiter.validate(1, 0));
+
+        CHECK(arbiter.validate(0, 1));
+        CHECK(arbiter.validate(0, 2));
+
+        // now we have a forward gap for [3,4,5] on line 1 which passes line 0 (current head)
+        CHECK(arbiter.validate(1, 6));
+
+        // fill the gap for 3 & 4...
+        CHECK(arbiter.validate(0, 3));
+        CHECK(arbiter.validate(0, 5));
+        CHECK(arbiter.validate(0, 4));
+
+        auto& gaps = errorPolicy.gaps();
+        REQUIRE CHECK_EQUAL(1U, gaps.size());
+
+        CHECK_EQUAL(3U, gaps[0].first);
+        CHECK_EQUAL(3U, gaps[0].second);
+
+        auto& gapFills = errorPolicy.gapFills();
+        REQUIRE CHECK_EQUAL(3U, gapFills.size());
+
+        CHECK_EQUAL(3U, gapFills[0].first);
+        CHECK_EQUAL(5U, gapFills[1].first);
+        CHECK_EQUAL(4U, gapFills[2].first);
+    }
+
+    TEST(verifySequenceArbiterHandlesGapFillsCorrectlyWhenForwardGapOvertakesHeadWithTwoLines_2)
+    {
+        MockErrorReportingPolicy errorPolicy;
+        arbiter::SequenceArbiter<TwoLineTraits> arbiter(errorPolicy);
+
+        CHECK(arbiter.validate(0, 0));
+        CHECK(!arbiter.validate(1, 0));
+
+        CHECK(arbiter.validate(0, 1));
+        CHECK(arbiter.validate(0, 2));
+
+        // now we have a forward gap for [3,4,5] on line 1 which passes line 0 (current head)
+        CHECK(arbiter.validate(1, 6));
+
+        // fill the gap for 3 & 4...
+        CHECK(arbiter.validate(0, 3));
+        CHECK(arbiter.validate(1, 5));
+        CHECK(arbiter.validate(0, 4));
+        CHECK(arbiter.validate(1, 7));
+
+        auto& gaps = errorPolicy.gaps();
+        REQUIRE CHECK_EQUAL(1U, gaps.size());
+
+        CHECK_EQUAL(3U, gaps[0].first);
+        CHECK_EQUAL(3U, gaps[0].second);
+
+        auto& gapFills = errorPolicy.gapFills();
+        REQUIRE CHECK_EQUAL(3U, gapFills.size());
+
+        CHECK_EQUAL(3U, gapFills[0].first);
+        CHECK_EQUAL(5U, gapFills[1].first);
+        CHECK_EQUAL(4U, gapFills[2].first);
+    }
+
+    TEST(verifySequenceArbiterHandlesGapFillsCorrectlyWhenForwardGapOvertakesHeadWithTwoLines_3)
+    {
+        MockErrorReportingPolicy errorPolicy;
+        arbiter::SequenceArbiter<TwoLineTraits> arbiter(errorPolicy);
+
+        CHECK(arbiter.validate(0, 0));
+        CHECK(!arbiter.validate(1, 0));
+
+        CHECK(arbiter.validate(0, 1));
+        CHECK(arbiter.validate(0, 2));
+
+        // now we have a forward gap for [3,4,5] on line 1 which passes line 0 (current head)
+        CHECK(arbiter.validate(1, 6));
+
+        // fill the gap for 3 & 4...
+        CHECK(arbiter.validate(1, 3));
+        CHECK(arbiter.validate(1, 5));
+        CHECK(arbiter.validate(1, 4));
+        CHECK(arbiter.validate(0, 7));
+
+        auto& gaps = errorPolicy.gaps();
+        REQUIRE CHECK_EQUAL(1U, gaps.size());
+
+        CHECK_EQUAL(3U, gaps[0].first);
+        CHECK_EQUAL(3U, gaps[0].second);
+
+        auto& gapFills = errorPolicy.gapFills();
+        REQUIRE CHECK_EQUAL(3U, gapFills.size());
+
+        CHECK_EQUAL(3U, gapFills[0].first);
+        CHECK_EQUAL(5U, gapFills[1].first);
+        CHECK_EQUAL(4U, gapFills[2].first);
+    }
+
+    TEST(verifySequenceArbiterHandlesGapFillsCorrectlyWhenForwardGapOvertakesHeadAndRollsOverHistoryBoundryWithTwoLines)
+    {
+        MockErrorReportingPolicy errorPolicy;
+        arbiter::SequenceArbiter<TwoLineTraits> arbiter(errorPolicy);
+
+        CHECK(arbiter.validate(0, 0));
+        CHECK(!arbiter.validate(1, 0));
+
+        CHECK(arbiter.validate(0, 1));
+        CHECK(!arbiter.validate(1, 1));
+
+        CHECK(arbiter.validate(0, 2));
+        CHECK(!arbiter.validate(1, 2));
+
+        CHECK(arbiter.validate(0, 3));
+        CHECK(!arbiter.validate(1, 3));
+
+        CHECK(arbiter.validate(0, 4));
+        CHECK(!arbiter.validate(1, 4));
+
+        CHECK(arbiter.validate(0, 5));
+        CHECK(!arbiter.validate(1, 5));
+
+        CHECK(arbiter.validate(0, 6));
+        CHECK(arbiter.validate(0, 7));
+
+        // gap [8, 9, 10, 11]
+        CHECK(arbiter.validate(1, 12));
+        CHECK(arbiter.validate(1, 13));
+
+        CHECK(arbiter.validate(0, 8));
+        CHECK(arbiter.validate(0, 9));
+        CHECK(arbiter.validate(0, 10));
+        CHECK(arbiter.validate(0, 11));
+        CHECK(!arbiter.validate(0, 12));
+        CHECK(!arbiter.validate(0, 13));
+
+        // verify gaps reported correctly...
+        auto& gaps = errorPolicy.gaps();
+        REQUIRE CHECK_EQUAL(1U, gaps.size());
+
+        CHECK_EQUAL(8U, gaps[0].first);
+        CHECK_EQUAL(4U, gaps[0].second);
+
+        // verify gap fills reported correctly...
+        auto& gapFills = errorPolicy.gapFills();
+        REQUIRE CHECK_EQUAL(4U, gapFills.size());
+
+        CHECK_EQUAL(8U, gapFills[0].first);
+        CHECK_EQUAL(9U, gapFills[1].first);
+        CHECK_EQUAL(10U, gapFills[2].first);
+        CHECK_EQUAL(11U, gapFills[3].first);
+    }
+
+    TEST(verifySequenceArbiterHandlesGapFillsCorrectlyWhenForwardGapOvertakesHeadAndRollsOverHistoryBoundry_GapFilledOutOfOrder_WithTwoLines)
+    {
+        MockErrorReportingPolicy errorPolicy;
+        arbiter::SequenceArbiter<TwoLineTraits> arbiter(errorPolicy);
+
+        CHECK(arbiter.validate(0, 0));
+        CHECK(!arbiter.validate(1, 0));
+
+        CHECK(arbiter.validate(0, 1));
+        CHECK(!arbiter.validate(1, 1));
+
+        CHECK(arbiter.validate(0, 2));
+        CHECK(!arbiter.validate(1, 2));
+
+        CHECK(arbiter.validate(0, 3));
+        CHECK(!arbiter.validate(1, 3));
+
+        CHECK(arbiter.validate(0, 4));
+        CHECK(!arbiter.validate(1, 4));
+
+        CHECK(arbiter.validate(0, 5));
+        CHECK(!arbiter.validate(1, 5));
+
+        CHECK(arbiter.validate(0, 6));
+        CHECK(arbiter.validate(0, 7));
+
+        // gap [8, 9, 10, 11]
+        CHECK(arbiter.validate(1, 12));
+        CHECK(arbiter.validate(1, 13));
+
+        CHECK(arbiter.validate(0, 8));
+        CHECK(arbiter.validate(0, 10));
+        CHECK(arbiter.validate(0, 9));
+        CHECK(arbiter.validate(0, 11));
+        CHECK(!arbiter.validate(0, 12));
+        CHECK(!arbiter.validate(0, 13));
+
+        // verify gaps reported correctly...
+        auto& gaps = errorPolicy.gaps();
+        REQUIRE CHECK_EQUAL(1U, gaps.size());
+
+        CHECK_EQUAL(8U, gaps[0].first);
+        CHECK_EQUAL(4U, gaps[0].second);
+
+        // verify gap fills reported correctly...
+        auto& gapFills = errorPolicy.gapFills();
+        REQUIRE CHECK_EQUAL(4U, gapFills.size());
+
+        CHECK_EQUAL(8U, gapFills[0].first);
+        CHECK_EQUAL(10U, gapFills[1].first);
+        CHECK_EQUAL(9U, gapFills[2].first);
+        CHECK_EQUAL(11U, gapFills[3].first);
+    }
+
+    TEST(verifySequenceArbiterHandlesGapFillsCorrectlyWhenForwardGapOvertakesHeadAndRollsOverHistoryBoundry_GapFilledOutOfOrder_WithTwoLines_2)
+    {
+        MockErrorReportingPolicy errorPolicy;
+        arbiter::SequenceArbiter<TwoLineTraits> arbiter(errorPolicy);
+
+        CHECK(arbiter.validate(0, 0));
+        CHECK(!arbiter.validate(1, 0));
+
+        CHECK(arbiter.validate(0, 1));
+        CHECK(!arbiter.validate(1, 1));
+
+        CHECK(arbiter.validate(0, 2));
+        CHECK(!arbiter.validate(1, 2));
+
+        CHECK(arbiter.validate(0, 3));
+        CHECK(!arbiter.validate(1, 3));
+
+        CHECK(arbiter.validate(0, 4));
+        CHECK(!arbiter.validate(1, 4));
+
+        CHECK(arbiter.validate(0, 5));
+        CHECK(!arbiter.validate(1, 5));
+
+        CHECK(arbiter.validate(0, 6));
+        CHECK(arbiter.validate(0, 7));
+
+        // gap [8, 9, 10, 11]
+        CHECK(arbiter.validate(1, 12));
+        CHECK(arbiter.validate(1, 13));
+
+        // gap fill
+        CHECK(arbiter.validate(1, 8));
+        CHECK(arbiter.validate(1, 10));
+        CHECK(arbiter.validate(1, 9));
+        CHECK(arbiter.validate(1, 11));
+        CHECK(!arbiter.validate(0, 12));
+        CHECK(!arbiter.validate(0, 13));
+
+        // verify gaps reported correctly...
+        auto& gaps = errorPolicy.gaps();
+        REQUIRE CHECK_EQUAL(1U, gaps.size());
+
+        CHECK_EQUAL(8U, gaps[0].first);
+        CHECK_EQUAL(4U, gaps[0].second);
+
+        // verify gap fills reported correctly...
+        auto& gapFills = errorPolicy.gapFills();
+        REQUIRE CHECK_EQUAL(4U, gapFills.size());
+
+        CHECK_EQUAL(8U, gapFills[0].first);
+        CHECK_EQUAL(10U, gapFills[1].first);
+        CHECK_EQUAL(9U, gapFills[2].first);
+        CHECK_EQUAL(11U, gapFills[3].first);
+    }
+
+    TEST(verifySequenceArbiterHandlesGapFillsCorrectlyWhenForwardGapOvertakesHeadAndRollsOverHistoryBoundry_GapFilledOutOfOrder_WithTwoLines_3)
+    {
+        MockErrorReportingPolicy errorPolicy;
+        arbiter::SequenceArbiter<TwoLineTraits> arbiter(errorPolicy);
+
+        CHECK(arbiter.validate(0, 0));
+        CHECK(!arbiter.validate(1, 0));
+
+        CHECK(arbiter.validate(0, 1));
+        CHECK(!arbiter.validate(1, 1));
+
+        CHECK(arbiter.validate(0, 2));
+        CHECK(!arbiter.validate(1, 2));
+
+        CHECK(arbiter.validate(0, 3));
+        CHECK(!arbiter.validate(1, 3));
+
+        CHECK(arbiter.validate(0, 4));
+        CHECK(!arbiter.validate(1, 4));
+
+        CHECK(arbiter.validate(0, 5));
+        CHECK(!arbiter.validate(1, 5));
+
+        CHECK(arbiter.validate(0, 6));
+        CHECK(arbiter.validate(0, 7));
+
+        // gap [8, 9, 10, 11]
+        CHECK(arbiter.validate(1, 12));
+        CHECK(arbiter.validate(1, 13));
+
+        // gap fill...
+        CHECK(arbiter.validate(1, 8));
+        CHECK(arbiter.validate(0, 10));
+        CHECK(arbiter.validate(1, 9));
+        CHECK(arbiter.validate(0, 11));
+        CHECK(!arbiter.validate(0, 12));
+        CHECK(!arbiter.validate(0, 13));
+
+        // verify gaps reported correctly...
+        auto& gaps = errorPolicy.gaps();
+        REQUIRE CHECK_EQUAL(1U, gaps.size());
+
+        CHECK_EQUAL(8U, gaps[0].first);
+        CHECK_EQUAL(4U, gaps[0].second);
+
+        // verify gap fills reported correctly...
+        auto& gapFills = errorPolicy.gapFills();
+        REQUIRE CHECK_EQUAL(4U, gapFills.size());
+
+        CHECK_EQUAL(8U, gapFills[0].first);
+        CHECK_EQUAL(10U, gapFills[1].first);
+        CHECK_EQUAL(9U, gapFills[2].first);
+        CHECK_EQUAL(11U, gapFills[3].first);
+    }
 }
