@@ -12,3 +12,8 @@
     #pragma clang diagnostic pop
 #endif
 
+// handle the case we're on an older version of UnitTest++
+#ifndef REQUIRE
+    #define REQUIRE
+#endif
+
