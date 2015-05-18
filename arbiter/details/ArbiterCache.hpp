@@ -57,6 +57,9 @@ namespace arbiter { namespace details {
     template<class Traits>
     std::size_t ArbiterCache<Traits>::nextPosition(const std::size_t lineId)
     {
-        return ++positions[lineId] % history.size();
+        auto nextPosition = (positions[lineId] + 1) % history.size();
+        positions[lineId] = nextPosition;
+
+        return nextPosition;
     }
 }}
