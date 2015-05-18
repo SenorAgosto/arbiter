@@ -25,7 +25,7 @@ namespace arbiter {
 		using SequenceType = typename Traits::SequenceType;
 		using ErrorReportingPolicy = typename Traits::ErrorReportingPolicy;
 
-		SequenceArbiter();
+		SequenceArbiter(ErrorReportingPolicy& errorPolicy);
 		
 		// Determine wether we should accept the @sequenceNumber or reject it
         inline bool validate(const std::size_t line, const SequenceType sequenceNumber);
@@ -35,7 +35,7 @@ namespace arbiter {
 
 	private:
 
-		ErrorReportingPolicy errorPolicy_;  // TODO: move this to policy holder idiom
+		ErrorReportingPolicy& errorPolicy_;  // TODO: move this to policy holder idiom
 
         details::ArbiterCache<Traits> cache_;
         details::ArbiterCacheAdvancer<Traits> advance_;
@@ -43,8 +43,9 @@ namespace arbiter {
 	
 	
 	template<class Traits>
-	SequenceArbiter<Traits>::SequenceArbiter()
-        : advance_(cache_, errorPolicy_)
+	SequenceArbiter<Traits>::SequenceArbiter(ErrorReportingPolicy& errorPolicy)
+        : errorPolicy_(errorPolicy)
+        , advance_(cache_, errorPolicy_)
 	{
     }
 
