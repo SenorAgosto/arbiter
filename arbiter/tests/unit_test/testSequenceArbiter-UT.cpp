@@ -260,4 +260,46 @@ namespace {
         CHECK(!arbiter.validate(0, 11));
         CHECK(!arbiter.validate(0, 12));
     }
+
+    TEST(verifySequenceArbiterHandlesGapFillsCorrectlyWithTwoLines)
+    {
+        MockErrorReportingPolicy errorPolicy;
+        arbiter::SequenceArbiter<TwoLineTraits> arbiter(errorPolicy);
+
+        CHECK(arbiter.validate(0, 0));
+        CHECK(!arbiter.validate(1, 0));
+
+        CHECK(arbiter.validate(0, 1));
+        CHECK(!arbiter.validate(1, 1));
+
+        CHECK(arbiter.validate(0, 2));
+        CHECK(!arbiter.validate(1, 2));
+
+        // gap, missing 3, 4, 5
+        CHECK(arbiter.validate(0, 6));
+        CHECK(!arbiter.validate(1, 6));
+
+        CHECK(arbiter.validate(0, 7));
+        CHECK(arbiter.validate(0, 8));
+        CHECK(arbiter.validate(0, 9));
+
+        CHECK(arbiter.validate(1, 4));  // 0 is head
+        CHECK(arbiter.validate(0, 3));
+        CHECK(arbiter.validate(1, 5));
+
+        // verify gaps reported correctly...
+        auto& gaps = errorPolicy.gaps();
+        REQUIRE CHECK_EQUAL(1U, gaps.size());
+
+        CHECK_EQUAL(3U, gaps[0].first);
+        CHECK_EQUAL(3U, gaps[0].second);
+
+        // verify gap fills reported correctly...
+        auto& gapFills = errorPolicy.gapFills();
+        REQUIRE CHECK_EQUAL(3U, gapFills.size());
+
+        CHECK_EQUAL(4U, gapFills[0].first);
+        CHECK_EQUAL(3U, gapFills[1].first);
+        CHECK_EQUAL(5U, gapFills[2].first);
+    }
 }
