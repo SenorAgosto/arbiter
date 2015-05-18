@@ -37,7 +37,7 @@ namespace arbiter { namespace details {
         bool accept = sequenceMatch && cache.history[gapPosition].empty();
         if(accept)
         {
-            context.errorPolicy.GapFill(lineId, sequenceNumber);
+            context.errorPolicy.GapFill(sequenceNumber, 1);
 
             positions[lineId] = gapPosition;
             cache.history[gapPosition].insert(lineId);
