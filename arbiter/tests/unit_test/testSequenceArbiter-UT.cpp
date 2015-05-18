@@ -30,9 +30,9 @@ namespace {
             duplicatesOnLine_.emplace_back(line, sequence);
         }
 
-
         const std::deque<GapPair>& gaps() const { return gaps_; }
         const std::deque<GapPair>& gapFills() const { return gapFills_; }
+        const std::deque<LineSequencePair>& dups() const { return duplicatesOnLine_; }
 
     private:
         std::deque<LineSequencePair> duplicatesOnLine_;
@@ -75,53 +75,61 @@ namespace {
         CHECK(arbiter.validate(0, 12));
     }
 
-    struct TwoLineTraits
-    {
-        static constexpr std::size_t FirstExpectedSequenceNumber() { return 0; }
-        static constexpr std::size_t NumberOfLines() { return 2; }
-        static constexpr std::size_t HistoryDepth() { return 10; }
-
-        using SequenceType = std::size_t;
-        using ErrorReportingPolicy = MockErrorReportingPolicy;
-    };
-
-    TEST(verifySequenceArbiterHandlesHappyPathForTwoLines)
+    TEST(verifySequenceArbiterReportsDuplicatesOnLineCorrectly)
     {
         MockErrorReportingPolicy errorPolicy;
-        arbiter::SequenceArbiter<TwoLineTraits> arbiter(errorPolicy);
+        arbiter::SequenceArbiter<SingleLineTraits> arbiter(errorPolicy);
 
-        CHECK(arbiter.validate(1, 0));
-        CHECK(arbiter.validate(1, 1));
-        CHECK(!arbiter.validate(0, 0));
-        CHECK(!arbiter.validate(0, 1));
-
+        CHECK(arbiter.validate(0, 0));
+        CHECK(arbiter.validate(0, 1));
         CHECK(arbiter.validate(0, 2));
-        CHECK(!arbiter.validate(1, 2));
-
         CHECK(arbiter.validate(0, 3));
-        CHECK(!arbiter.validate(1, 3));
+        CHECK(arbiter.validate(0, 4));
 
-        CHECK(arbiter.validate(1, 4));
-        CHECK(arbiter.validate(1, 5));
-        CHECK(arbiter.validate(1, 6));
-        CHECK(arbiter.validate(1, 7));
-        CHECK(!arbiter.validate(0, 4));
-        CHECK(!arbiter.validate(0, 5));
-        CHECK(!arbiter.validate(0, 6));
-        CHECK(!arbiter.validate(0, 7));
+        CHECK(!arbiter.validate(0, 1)); // duplicate
+        CHECK(!arbiter.validate(0, 3)); // duplicate
 
+        auto& dups = errorPolicy.dups();
+        REQUIRE CHECK_EQUAL(2U, dups.size());
+
+        CHECK_EQUAL(0U, dups[0].first);
+        CHECK_EQUAL(1U, dups[0].second);
+
+        CHECK_EQUAL(0U, dups[1].first);
+        CHECK_EQUAL(3U, dups[1].second);
+    }
+
+    TEST(verifySequenceArbiterReportsDuplicatesOnLineCorrectlyOnHistoryWrapAround)
+    {
+        MockErrorReportingPolicy errorPolicy;
+        arbiter::SequenceArbiter<SingleLineTraits> arbiter(errorPolicy);
+
+        CHECK(arbiter.validate(0, 0));
+        CHECK(arbiter.validate(0, 1));
+        CHECK(arbiter.validate(0, 2));
+        CHECK(arbiter.validate(0, 3));
+        CHECK(arbiter.validate(0, 4));
+        CHECK(arbiter.validate(0, 5));
+        CHECK(arbiter.validate(0, 6));
+        CHECK(arbiter.validate(0, 7));
         CHECK(arbiter.validate(0, 8));
-        CHECK(!arbiter.validate(1,8));
+        CHECK(arbiter.validate(0, 9));
+        CHECK(arbiter.validate(0, 10));
+        CHECK(arbiter.validate(0, 11));
 
-        CHECK(arbiter.validate(1,9));   // next message rolls over history boundry.
-        CHECK(arbiter.validate(1,10));
-        CHECK(arbiter.validate(1,11));
-        CHECK(arbiter.validate(1,12));
+        CHECK(!arbiter.validate(0, 8));     // duplicate
+        CHECK(!arbiter.validate(0, 7));     // duplicate
 
-        CHECK(!arbiter.validate(0, 9));
-        CHECK(!arbiter.validate(0, 10));
-        CHECK(!arbiter.validate(0, 11));
-        CHECK(!arbiter.validate(0, 12));
+        CHECK(!arbiter.validate(0, 0));     // duplicate in unrecoverable area, discard no report.
+
+        auto& dups = errorPolicy.dups();
+        REQUIRE CHECK_EQUAL(2U, dups.size());
+
+        CHECK_EQUAL(0U, dups[0].first);
+        CHECK_EQUAL(8U, dups[0].second);
+
+        CHECK_EQUAL(0U, dups[1].first);
+        CHECK_EQUAL(7U, dups[1].second);
     }
 
     TEST(verifySequenceArbiterHandlesForwardGapCorrectly)
@@ -202,5 +210,54 @@ namespace {
         CHECK(arbiter.validate(0, 9));
         CHECK(arbiter.validate(0, 8));
         CHECK(arbiter.validate(0, 7));
+    }
+
+    struct TwoLineTraits
+    {
+        static constexpr std::size_t FirstExpectedSequenceNumber() { return 0; }
+        static constexpr std::size_t NumberOfLines() { return 2; }
+        static constexpr std::size_t HistoryDepth() { return 10; }
+
+        using SequenceType = std::size_t;
+        using ErrorReportingPolicy = MockErrorReportingPolicy;
+    };
+
+    TEST(verifySequenceArbiterHandlesHappyPathForTwoLines)
+    {
+        MockErrorReportingPolicy errorPolicy;
+        arbiter::SequenceArbiter<TwoLineTraits> arbiter(errorPolicy);
+
+        CHECK(arbiter.validate(1, 0));
+        CHECK(arbiter.validate(1, 1));
+        CHECK(!arbiter.validate(0, 0));
+        CHECK(!arbiter.validate(0, 1));
+
+        CHECK(arbiter.validate(0, 2));
+        CHECK(!arbiter.validate(1, 2));
+
+        CHECK(arbiter.validate(0, 3));
+        CHECK(!arbiter.validate(1, 3));
+
+        CHECK(arbiter.validate(1, 4));
+        CHECK(arbiter.validate(1, 5));
+        CHECK(arbiter.validate(1, 6));
+        CHECK(arbiter.validate(1, 7));
+        CHECK(!arbiter.validate(0, 4));
+        CHECK(!arbiter.validate(0, 5));
+        CHECK(!arbiter.validate(0, 6));
+        CHECK(!arbiter.validate(0, 7));
+
+        CHECK(arbiter.validate(0, 8));
+        CHECK(!arbiter.validate(1,8));
+
+        CHECK(arbiter.validate(1,9));   // next message rolls over history boundry.
+        CHECK(arbiter.validate(1,10));
+        CHECK(arbiter.validate(1,11));
+        CHECK(arbiter.validate(1,12));
+
+        CHECK(!arbiter.validate(0, 9));
+        CHECK(!arbiter.validate(0, 10));
+        CHECK(!arbiter.validate(0, 11));
+        CHECK(!arbiter.validate(0, 12));
     }
 }
