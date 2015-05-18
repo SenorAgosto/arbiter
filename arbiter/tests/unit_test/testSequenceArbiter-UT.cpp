@@ -12,14 +12,27 @@ namespace {
     class MockErrorReportingPolicy : public arbiter::details::NullErrorReportingPolicy<std::size_t>
     {
     public:
+        using LineSequencePair = std::pair<std::size_t, std::size_t>;
+        using GapPair = std::pair<std::size_t, std::size_t>;
+
+        void Gap(const std::size_t sequenceNumber, const std::size_t gapSize)
+        {
+            gaps_.emplace_back(sequenceNumber, gapSize);
+        }
+
         void DuplicateOnLine(const std::size_t line, const std::size_t sequence)
         {
             duplicatesOnLine_.emplace_back(line, sequence);
         }
 
+        const std::deque<GapPair>& gaps() const
+        {
+            return gaps_;
+        }
+
     private:
-        using LineSequencePair = std::pair<std::size_t, std::size_t>;
         std::deque<LineSequencePair> duplicatesOnLine_;
+        std::deque<GapPair> gaps_;
     };
 
     struct SingleLineTraits
@@ -34,12 +47,14 @@ namespace {
 
     TEST(verifySequenceArbiterInstantiation)
     {
-        arbiter::SequenceArbiter<SingleLineTraits> arbiter;
+        MockErrorReportingPolicy errorPolicy;
+        arbiter::SequenceArbiter<SingleLineTraits> arbiter(errorPolicy);
     }
 
     TEST(verifySequenceArbiterHandlesHappyPath)
     {
-        arbiter::SequenceArbiter<SingleLineTraits> arbiter;
+        MockErrorReportingPolicy errorPolicy;
+        arbiter::SequenceArbiter<SingleLineTraits> arbiter(errorPolicy);
 
         CHECK(arbiter.validate(0, 0));
         CHECK(arbiter.validate(0, 1));
@@ -67,7 +82,8 @@ namespace {
 
     TEST(verifySequenceArbiterHandlesHappyPathForTwoLines)
     {
-        arbiter::SequenceArbiter<TwoLineTraits> arbiter;
+        MockErrorReportingPolicy errorPolicy;
+        arbiter::SequenceArbiter<TwoLineTraits> arbiter(errorPolicy);
 
         CHECK(arbiter.validate(1, 0));
         CHECK(arbiter.validate(1, 1));
@@ -101,5 +117,32 @@ namespace {
         CHECK(!arbiter.validate(0, 10));
         CHECK(!arbiter.validate(0, 11));
         CHECK(!arbiter.validate(0, 12));
+    }
+
+    TEST(verifySequenceArbiterHandlesForwardGapCorrectly)
+    {
+        MockErrorReportingPolicy errorReporter;
+        arbiter::SequenceArbiter<SingleLineTraits> arbiter(errorReporter);
+
+        CHECK(arbiter.validate(0, 0));
+        CHECK(arbiter.validate(0, 1));
+
+        // now we have a gap (2, 3, 4) are missing...
+        CHECK(arbiter.validate(0, 5));
+
+        // verify gap was reported
+        auto& gaps = errorReporter.gaps();
+        REQUIRE CHECK_EQUAL(1U, gaps.size());
+
+        CHECK_EQUAL(2U, gaps[0].first);     // gap starts at 2
+        CHECK_EQUAL(3U, gaps[0].second);    // gap is 3 messages
+
+        CHECK(arbiter.validate(0, 6));
+        CHECK(arbiter.validate(0, 7));
+        CHECK(arbiter.validate(0, 8));
+        CHECK(arbiter.validate(0, 9));      // next message rolls over history boundry.
+        CHECK(arbiter.validate(0, 10));
+        CHECK(arbiter.validate(0, 11));
+        CHECK(arbiter.validate(0, 12));
     }
 }
