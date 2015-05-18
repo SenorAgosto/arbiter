@@ -20,19 +20,24 @@ namespace {
             gaps_.emplace_back(sequenceNumber, gapSize);
         }
 
+        void GapFill(const std::size_t sequenceNumber, const std::size_t length)
+        {
+            gapFills_.emplace_back(sequenceNumber, length);
+        }
+
         void DuplicateOnLine(const std::size_t line, const std::size_t sequence)
         {
             duplicatesOnLine_.emplace_back(line, sequence);
         }
 
-        const std::deque<GapPair>& gaps() const
-        {
-            return gaps_;
-        }
+
+        const std::deque<GapPair>& gaps() const { return gaps_; }
+        const std::deque<GapPair>& gapFills() const { return gapFills_; }
 
     private:
         std::deque<LineSequencePair> duplicatesOnLine_;
         std::deque<GapPair> gaps_;
+        std::deque<GapPair> gapFills_;
     };
 
     struct SingleLineTraits
@@ -143,6 +148,59 @@ namespace {
         CHECK(arbiter.validate(0, 9));      // next message rolls over history boundry.
         CHECK(arbiter.validate(0, 10));
         CHECK(arbiter.validate(0, 11));
-        CHECK(arbiter.validate(0, 12));
+    }
+
+    TEST(verifySequenceArbiterHandlesGapFillsCorrectly)
+    {
+        MockErrorReportingPolicy errorReporter;
+        arbiter::SequenceArbiter<SingleLineTraits> arbiter(errorReporter);
+
+        CHECK(arbiter.validate(0, 0));
+        CHECK(arbiter.validate(0, 1));
+
+        // now we have a gap (2, 3, 4) are missing...
+        CHECK(arbiter.validate(0, 5));
+        CHECK(arbiter.validate(0, 6));
+        CHECK(arbiter.validate(0, 7));
+
+        // fill the gaps
+        CHECK(arbiter.validate(0, 2));
+        CHECK(arbiter.validate(0, 4));
+        CHECK(arbiter.validate(0, 3));
+
+        // verify gap fills were reported.
+        auto& gapFills = errorReporter.gapFills();
+        REQUIRE CHECK_EQUAL(3U, gapFills.size());
+
+        CHECK(arbiter.validate(0, 8));
+        CHECK(arbiter.validate(0, 9));
+        CHECK(arbiter.validate(0, 10));
+        CHECK(arbiter.validate(0, 11));
+    }
+
+    // ensure that a gap on the other side of the history boundry can be filled correctly.
+    TEST(verifySequenceArbiterHandlesGapFillCorrectlyWhenGapFillGoesAcrossHistoryBoundry)
+    {
+        MockErrorReportingPolicy errorReporter;
+        arbiter::SequenceArbiter<SingleLineTraits> arbiter(errorReporter);
+
+        // first nearly fill up our buffer (depth 10).
+        CHECK(arbiter.validate(0, 0));
+        CHECK(arbiter.validate(0, 1));
+        CHECK(arbiter.validate(0, 2));
+        CHECK(arbiter.validate(0, 3));
+        CHECK(arbiter.validate(0, 4));
+        CHECK(arbiter.validate(0, 5));
+
+        // sequence 6 - 9 are missing
+        CHECK(arbiter.validate(0, 10));
+        CHECK(arbiter.validate(0, 11));
+
+        // now we fill the gap which needs to wrap
+        // around to the end of the history.
+        CHECK(arbiter.validate(0, 6));
+        CHECK(arbiter.validate(0, 9));
+        CHECK(arbiter.validate(0, 8));
+        CHECK(arbiter.validate(0, 7));
     }
 }
