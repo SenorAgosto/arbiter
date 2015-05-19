@@ -6,6 +6,9 @@ namespace arbiter { namespace details {
 	template<typename SequenceType>
 	struct NullErrorReportingPolicy 
 	{
+        // the first sequence passed to arbiter was less than Traits::FirstExpectedSequenceNumber
+        void FirstSequenceNumberOutOfSequence(const std::size_t /*line*/, const SequenceType /*sequence*/){}
+
 		void DuplicateOnLine(const std::size_t /*line*/, const SequenceType /*sequence*/){}
 		
 		void Gap(const SequenceType /*start*/, const SequenceType /*length*/){}

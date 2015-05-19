@@ -30,11 +30,18 @@ namespace {
             duplicatesOnLine_.emplace_back(line, sequence);
         }
 
+        void UnrecoverableGap(const std::size_t sequenceNumber, const std::size_t gapSize = 1)
+        {
+            unrecoverableGaps_.emplace_back(sequenceNumber, gapSize);
+        }
+
         const std::deque<GapPair>& gaps() const { return gaps_; }
         const std::deque<GapPair>& gapFills() const { return gapFills_; }
         const std::deque<LineSequencePair>& dups() const { return duplicatesOnLine_; }
-
+        const std::deque<GapPair>& unrecoverableGaps() const { return unrecoverableGaps_; }
+        
     private:
+        std::deque<GapPair> unrecoverableGaps_;
         std::deque<LineSequencePair> duplicatesOnLine_;
         std::deque<GapPair> gaps_;
         std::deque<GapPair> gapFills_;
@@ -43,6 +50,7 @@ namespace {
     struct SingleLineTraits
     {
         static constexpr std::size_t FirstExpectedSequenceNumber() { return 0; }
+        static constexpr std::size_t LargestRecoverableGap() { return 5; }
         static constexpr std::size_t NumberOfLines() { return 1; } 
         static constexpr std::size_t HistoryDepth() { return 10; }
 
@@ -73,6 +81,91 @@ namespace {
         CHECK(arbiter.validate(0, 9));  // next message rolls over history boundry.
         CHECK(arbiter.validate(0, 10));
         CHECK(arbiter.validate(0, 12));
+    }
+
+    TEST(verifySequenceArbiterHandlesGapOnFirstSequenceNumber)
+    {
+        MockErrorReportingPolicy errorPolicy;
+        arbiter::SequenceArbiter<SingleLineTraits> arbiter(errorPolicy);
+
+        // gap 0 - 4
+        CHECK(arbiter.validate(0, 5));
+
+        // gap fill...
+        CHECK(arbiter.validate(0, 4));
+        CHECK(arbiter.validate(0, 2));
+        CHECK(arbiter.validate(0, 3));
+        CHECK(arbiter.validate(0, 0));
+        CHECK(arbiter.validate(0, 1));
+
+        CHECK(!arbiter.validate(0, 2));  // duplicate on line...
+        CHECK(arbiter.validate(0, 6));
+
+        auto& gaps = errorPolicy.gaps();
+        REQUIRE CHECK_EQUAL(1U, gaps.size());
+
+        CHECK_EQUAL(0U, gaps[0].first);
+        CHECK_EQUAL(5U, gaps[0].second);
+
+        auto& gapFills = errorPolicy.gapFills();
+        REQUIRE CHECK_EQUAL(5U, gapFills.size());
+
+        CHECK_EQUAL(4U, gapFills[0].first);
+        CHECK_EQUAL(2U, gapFills[1].first);
+        CHECK_EQUAL(3U, gapFills[2].first);
+        CHECK_EQUAL(0U, gapFills[3].first);
+        CHECK_EQUAL(1U, gapFills[4].first);
+
+        auto& dups = errorPolicy.dups();
+        REQUIRE CHECK_EQUAL(1U, dups.size());
+
+        CHECK_EQUAL(0U, dups[0].first);     // duplicate on line 0
+        CHECK_EQUAL(2U, dups[0].second);    // duplicate sequence 2
+    }
+
+    TEST(verifySequenceArbiterHandlesTooLargeOfGapOnFirstSequenceNumber)
+    {
+        MockErrorReportingPolicy errorPolicy;
+        arbiter::SequenceArbiter<SingleLineTraits> arbiter(errorPolicy);
+
+        // gap 0 - 6    (gap of length 7)
+        CHECK(arbiter.validate(0, 7));
+        CHECK(arbiter.validate(0, 8));
+
+        // gap fill
+        CHECK(!arbiter.validate(0, 0));     // unrecoverable
+        CHECK(!arbiter.validate(0, 1));     // unrecoverable
+        CHECK( arbiter.validate(0, 3));
+        CHECK( arbiter.validate(0, 2));
+        CHECK( arbiter.validate(0, 5));
+        CHECK( arbiter.validate(0, 6));
+        CHECK( arbiter.validate(0, 4));
+
+        CHECK( arbiter.validate(0, 9));
+        CHECK( arbiter.validate(0, 10));
+        CHECK( arbiter.validate(0, 11));
+
+        // verify unrecoverable reported...
+        auto& unrecoverable = errorPolicy.unrecoverableGaps();
+        REQUIRE CHECK_EQUAL(1U, unrecoverable.size());
+
+        CHECK_EQUAL(0U, unrecoverable[0].first);
+        CHECK_EQUAL(2U, unrecoverable[0].second);
+
+        auto& gaps = errorPolicy.gaps();
+        REQUIRE CHECK_EQUAL(1U, gaps.size());
+
+        CHECK_EQUAL(2U, gaps[0].first);     // starting sequence of gap
+        CHECK_EQUAL(5U, gaps[0].second);    // length of gap
+
+        auto& gapFills = errorPolicy.gapFills();
+        REQUIRE CHECK_EQUAL(5U, gapFills.size());
+
+        CHECK_EQUAL(3U, gapFills[0].first);
+        CHECK_EQUAL(2U, gapFills[1].first);
+        CHECK_EQUAL(5U, gapFills[2].first);
+        CHECK_EQUAL(6U, gapFills[3].first);
+        CHECK_EQUAL(4U, gapFills[4].first);
     }
 
     TEST(verifySequenceArbiterReportsDuplicatesOnLineCorrectly)
@@ -215,6 +308,7 @@ namespace {
     struct TwoLineTraits
     {
         static constexpr std::size_t FirstExpectedSequenceNumber() { return 0; }
+        static constexpr std::size_t LargestRecoverableGap() { return 5; }
         static constexpr std::size_t NumberOfLines() { return 2; }
         static constexpr std::size_t HistoryDepth() { return 10; }
 
