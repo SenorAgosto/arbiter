@@ -35,16 +35,23 @@ namespace {
             unrecoverableGaps_.emplace_back(sequenceNumber, gapSize);
         }
 
+		void LinePositionOverrun(const std::size_t slowLine, const std::size_t overrunByLine)
+        {
+            overruns_.emplace_back(slowLine, overrunByLine);
+        }
+
         const std::deque<GapPair>& gaps() const { return gaps_; }
         const std::deque<GapPair>& gapFills() const { return gapFills_; }
         const std::deque<LineSequencePair>& dups() const { return duplicatesOnLine_; }
         const std::deque<GapPair>& unrecoverableGaps() const { return unrecoverableGaps_; }
-        
+        const std::deque<GapPair>& overruns() const { return overruns_; }
+
     private:
         std::deque<GapPair> unrecoverableGaps_;
         std::deque<LineSequencePair> duplicatesOnLine_;
         std::deque<GapPair> gaps_;
         std::deque<GapPair> gapFills_;
+        std::deque<GapPair> overruns_;
     };
 
     struct SingleLineTraits
@@ -714,5 +721,62 @@ namespace {
         CHECK_EQUAL(10U, gapFills[1].first);
         CHECK_EQUAL(9U, gapFills[2].first);
         CHECK_EQUAL(11U, gapFills[3].first);
+    }
+
+    TEST(verifySlowLineOverrunReported)
+    {
+        MockErrorReportingPolicy errorPolicy;
+        arbiter::SequenceArbiter<TwoLineTraits> arbiter(errorPolicy);
+
+        CHECK(arbiter.validate(1, 0));
+        CHECK(arbiter.validate(1, 1));
+        CHECK(arbiter.validate(1, 2));
+        CHECK(arbiter.validate(1, 3));
+        CHECK(arbiter.validate(1, 4));
+        CHECK(arbiter.validate(1, 5));
+        CHECK(arbiter.validate(1, 6));
+        CHECK(arbiter.validate(1, 7));
+        CHECK(arbiter.validate(1, 8));
+        CHECK(arbiter.validate(1, 9));      // next messages rolls over and clobbers line 0's position.
+        CHECK(arbiter.validate(1, 10));
+
+        auto& overruns = errorPolicy.overruns();
+        REQUIRE CHECK_EQUAL(1U, overruns.size());
+
+        CHECK_EQUAL(0U, overruns[0].first);     // slow line 0
+        CHECK_EQUAL(1U, overruns[0].second);    // overrun by line 1
+    }
+
+    TEST(verifySlowLineOverrunReported_2)
+    {
+        MockErrorReportingPolicy errorPolicy;
+        arbiter::SequenceArbiter<TwoLineTraits> arbiter(errorPolicy);
+
+        CHECK(arbiter.validate(0, 0));
+        CHECK(arbiter.validate(0, 1));
+        CHECK(!arbiter.validate(1, 0));
+        CHECK(!arbiter.validate(1, 1));
+
+        CHECK(arbiter.validate(1, 2));
+        CHECK(arbiter.validate(1, 3));
+        CHECK(arbiter.validate(1, 4));
+        CHECK(arbiter.validate(1, 5));
+        CHECK(arbiter.validate(1, 6));
+        CHECK(arbiter.validate(1, 7));
+        CHECK(arbiter.validate(1, 8));
+        CHECK(arbiter.validate(1, 9));      // next message rolls over to position 0.
+        CHECK(arbiter.validate(1, 10));
+        CHECK(arbiter.validate(1, 11));     // this overruns line 0, line 0 gets bumped to next position.
+        CHECK(arbiter.validate(1, 12));     // this overruns line 0, line 0 gets bumped to next position.
+
+        auto& overruns = errorPolicy.overruns();
+        REQUIRE CHECK_EQUAL(2U, overruns.size());
+
+        CHECK_EQUAL(0U, overruns[0].first);     // slow line 0
+        CHECK_EQUAL(1U, overruns[0].second);    // overrun by line 1
+
+        CHECK_EQUAL(0U, overruns[0].first);     // slow line 0
+        CHECK_EQUAL(1U, overruns[0].second);    // overrun by line 1
+
     }
 }

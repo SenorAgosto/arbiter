@@ -14,6 +14,7 @@ namespace arbiter { namespace details {
         bool advance(ArbiterCacheAdvancerContext<Traits>& context, const std::size_t lineId, const SequenceType sequenceNumber) override;
 
     private:
+        void checkForSlowLineOverrun(ArbiterCacheAdvancerContext<Traits>& context, const std::size_t lineId, const std::size_t nextPosition);
         void handleGaps(const SequenceInfo& sequenceInfo, ErrorReportingPolicy& errorPolicy);
     };
 
@@ -26,13 +27,35 @@ namespace arbiter { namespace details {
         auto nextPosition = cache.nextPosition(lineId);
         auto& sequenceInfo = cache.history[nextPosition];
 
-        // TODO: check for slow line overrun...
+        checkForSlowLineOverrun(context, lineId, nextPosition);
         handleGaps(sequenceInfo, context.errorPolicy);
 
         cache.history[nextPosition] = SequenceInfo(lineId, sequenceNumber);
         cache.positions[lineId] = nextPosition;
 
         return true;    // new sequence number, accept the message
+    }
+
+    template<class Traits>
+    void AdvanceHead<Traits>::checkForSlowLineOverrun(ArbiterCacheAdvancerContext<Traits>& context, const std::size_t lineId, const std::size_t nextPosition)
+    {
+        // determine if the nextPosition is equal to any other lines besides our own.
+        auto& positions = context.cache.positions;
+
+        std::size_t positionLineId = 0;
+        for(auto& position : positions)
+        {
+            if(positionLineId != lineId)
+            {
+                if(nextPosition == position)
+                {
+                    context.errorPolicy.LinePositionOverrun(positionLineId, lineId);
+                    position = (nextPosition + 1) % context.cache.history.size();
+                }
+            }
+
+            ++positionLineId;
+        }
     }
 
     template<class Traits>
