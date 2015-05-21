@@ -740,6 +740,9 @@ namespace {
         CHECK(arbiter.validate(1, 9));      // next messages rolls over and clobbers line 0's position.
         CHECK(arbiter.validate(1, 10));
 
+        CHECK(!arbiter.validate(0, 0));     // ensure a slow line that starts sending data is handled correctly...
+        CHECK(!arbiter.validate(0, 1));     //
+
         auto& overruns = errorPolicy.overruns();
         REQUIRE CHECK_EQUAL(1U, overruns.size());
 
@@ -769,6 +772,9 @@ namespace {
         CHECK(arbiter.validate(1, 11));     // this overruns line 0, line 0 gets bumped to next position.
         CHECK(arbiter.validate(1, 12));     // this overruns line 0, line 0 gets bumped to next position.
 
+        CHECK(!arbiter.validate(0, 2));     // these positions were overrun, throw away the values
+        CHECK(!arbiter.validate(0, 3));     // these positions were overrun, throw away the values
+
         auto& overruns = errorPolicy.overruns();
         REQUIRE CHECK_EQUAL(2U, overruns.size());
 
@@ -777,6 +783,278 @@ namespace {
 
         CHECK_EQUAL(0U, overruns[0].first);     // slow line 0
         CHECK_EQUAL(1U, overruns[0].second);    // overrun by line 1
-
     }
+
+    TEST(verifySlowLineOverrunReported_3)
+    {
+        MockErrorReportingPolicy errorPolicy;
+        arbiter::SequenceArbiter<TwoLineTraits> arbiter(errorPolicy);
+
+        CHECK(arbiter.validate(0, 0));
+        CHECK(arbiter.validate(0, 1));
+        CHECK(!arbiter.validate(1, 0));
+        CHECK(!arbiter.validate(1, 1));
+
+        CHECK(arbiter.validate(1, 2));
+        CHECK(arbiter.validate(1, 3));
+        CHECK(arbiter.validate(1, 4));
+        CHECK(arbiter.validate(1, 5));
+        CHECK(arbiter.validate(1, 6));
+        CHECK(arbiter.validate(1, 7));
+        CHECK(arbiter.validate(1, 8));
+        CHECK(arbiter.validate(1, 9));      // next message rolls over to position 0.
+        CHECK(arbiter.validate(1, 10));
+        CHECK(arbiter.validate(1, 11));     // this overruns line 0, line 0 gets bumped to next position.
+        CHECK(arbiter.validate(1, 12));     // this overruns line 0, line 0 gets bumped to next position.
+
+        CHECK(!arbiter.validate(0, 4));     // these positions were overrun, coming in out of order.
+        CHECK(!arbiter.validate(0, 3));
+        CHECK(!arbiter.validate(0, 2));
+
+        auto& overruns = errorPolicy.overruns();
+        REQUIRE CHECK_EQUAL(2U, overruns.size());
+
+        CHECK_EQUAL(0U, overruns[0].first);     // slow line 0
+        CHECK_EQUAL(1U, overruns[0].second);    // overrun by line 1
+
+        CHECK_EQUAL(0U, overruns[0].first);     // slow line 0
+        CHECK_EQUAL(1U, overruns[0].second);    // overrun by line 1
+    }
+
+    TEST(verifySlowLineOverrunReportedWhenSlowLineStoppedAtEndOfHistory)
+    {
+        MockErrorReportingPolicy errorPolicy;
+        arbiter::SequenceArbiter<TwoLineTraits> arbiter(errorPolicy);
+
+        CHECK(arbiter.validate(0, 0));
+        CHECK(!arbiter.validate(1, 0));
+
+        CHECK(arbiter.validate(0, 1));
+        CHECK(!arbiter.validate(1, 1));
+
+        CHECK(arbiter.validate(0, 2));
+        CHECK(!arbiter.validate(1, 2));
+
+        CHECK(arbiter.validate(0, 3));
+        CHECK(!arbiter.validate(1, 3));
+
+        CHECK(arbiter.validate(0, 4));
+        CHECK(!arbiter.validate(1, 4));
+
+        CHECK(arbiter.validate(0, 5));
+        CHECK(!arbiter.validate(1, 5));
+
+        CHECK(arbiter.validate(0, 6));
+        CHECK(!arbiter.validate(1, 6));
+
+        CHECK(arbiter.validate(0, 7));
+        CHECK(!arbiter.validate(1, 7));
+
+        CHECK(arbiter.validate(0, 8));
+        CHECK(!arbiter.validate(1, 8));
+
+        CHECK(arbiter.validate(0, 9));
+        CHECK(!arbiter.validate(1, 9));
+
+        // now line 1 will stop sending... and line 0 will over take it.
+        CHECK(arbiter.validate(0, 10));
+        CHECK(arbiter.validate(0, 11));
+        CHECK(arbiter.validate(0, 12));
+        CHECK(arbiter.validate(0, 13));
+        CHECK(arbiter.validate(0, 14));
+        CHECK(arbiter.validate(0, 15));
+        CHECK(arbiter.validate(0, 16));
+        CHECK(arbiter.validate(0, 17));
+        CHECK(arbiter.validate(0, 18));
+        CHECK(arbiter.validate(0, 19));     // overruns line 1
+        CHECK(arbiter.validate(0, 20));     // overruns line 1
+
+        CHECK(!arbiter.validate(1, 19));    // slow line comes back with already passed value.
+
+        auto& overruns = errorPolicy.overruns();
+        REQUIRE CHECK_EQUAL(2U, overruns.size());
+
+        CHECK_EQUAL(1U, overruns[0].first);     // slow line 1
+        CHECK_EQUAL(0U, overruns[0].second);    // overrun by line 0
+
+        CHECK_EQUAL(1U, overruns[0].first);     // slow line 1
+        CHECK_EQUAL(0U, overruns[0].second);    // overrun by line 0
+    }
+
+    TEST(verifySlowLineOverrunReportedWhenSlowLineStoppedAtEndOfHistory_2)
+    {
+        MockErrorReportingPolicy errorPolicy;
+        arbiter::SequenceArbiter<TwoLineTraits> arbiter(errorPolicy);
+
+        CHECK(arbiter.validate(0, 0));
+        CHECK(!arbiter.validate(1, 0));
+
+        CHECK(arbiter.validate(0, 1));
+        CHECK(!arbiter.validate(1, 1));
+
+        CHECK(arbiter.validate(0, 2));
+        CHECK(!arbiter.validate(1, 2));
+
+        CHECK(arbiter.validate(0, 3));
+        CHECK(!arbiter.validate(1, 3));
+
+        CHECK(arbiter.validate(0, 4));
+        CHECK(!arbiter.validate(1, 4));
+
+        CHECK(arbiter.validate(0, 5));
+        CHECK(!arbiter.validate(1, 5));
+
+        CHECK(arbiter.validate(0, 6));
+        CHECK(!arbiter.validate(1, 6));
+
+        CHECK(arbiter.validate(0, 7));
+        CHECK(!arbiter.validate(1, 7));
+
+        CHECK(arbiter.validate(0, 8));
+        CHECK(!arbiter.validate(1, 8));
+
+        CHECK(arbiter.validate(0, 9));
+        CHECK(!arbiter.validate(1, 9));
+
+        // now line 1 will stop sending... and line 0 will over take it.
+        CHECK(arbiter.validate(0, 10));
+        CHECK(arbiter.validate(0, 11));
+        CHECK(arbiter.validate(0, 12));
+        CHECK(arbiter.validate(0, 13));
+        CHECK(arbiter.validate(0, 14));
+        CHECK(arbiter.validate(0, 15));
+        CHECK(arbiter.validate(0, 16));
+        CHECK(arbiter.validate(0, 17));
+        CHECK(arbiter.validate(0, 18));
+        CHECK(arbiter.validate(0, 19));     // overruns line 1
+        CHECK(arbiter.validate(0, 20));     // overruns line 1
+
+        CHECK(arbiter.validate(1, 21));     // slow line comes back with a sequence number in front of head...
+
+        auto& overruns = errorPolicy.overruns();
+        REQUIRE CHECK_EQUAL(2U, overruns.size());
+
+        CHECK_EQUAL(1U, overruns[0].first);     // slow line 1
+        CHECK_EQUAL(0U, overruns[0].second);    // overrun by line 0
+
+        CHECK_EQUAL(1U, overruns[0].first);     // slow line 1
+        CHECK_EQUAL(0U, overruns[0].second);    // overrun by line 0
+    }
+
+    TEST(verifySlowLineOverrunReported_4)
+    {
+        MockErrorReportingPolicy errorPolicy;
+        arbiter::SequenceArbiter<TwoLineTraits> arbiter(errorPolicy);
+
+        CHECK(arbiter.validate(1, 0));
+        CHECK(arbiter.validate(1, 1));
+        CHECK(arbiter.validate(1, 2));
+        CHECK(arbiter.validate(1, 3));
+        CHECK(arbiter.validate(1, 4));
+        CHECK(arbiter.validate(1, 5));
+        CHECK(arbiter.validate(1, 6));
+        CHECK(arbiter.validate(1, 7));
+        CHECK(arbiter.validate(1, 8));
+        CHECK(arbiter.validate(1, 9));      // next messages rolls over and clobbers line 0's position.
+        CHECK(arbiter.validate(1, 10));
+
+        CHECK(!arbiter.validate(0, 1));     // the slow line comes back with a gapped value (0 missing).
+        CHECK(!arbiter.validate(0, 2));
+
+        auto& overruns = errorPolicy.overruns();
+        REQUIRE CHECK_EQUAL(1U, overruns.size());
+
+        CHECK_EQUAL(0U, overruns[0].first);     // slow line 0
+        CHECK_EQUAL(1U, overruns[0].second);    // overrun by line 1
+    }
+
+    TEST(verifySlowLineOverrunReported_5)
+    {
+        MockErrorReportingPolicy errorPolicy;
+        arbiter::SequenceArbiter<TwoLineTraits> arbiter(errorPolicy);
+
+        CHECK(arbiter.validate(1, 0));
+        CHECK(arbiter.validate(1, 1));
+        CHECK(arbiter.validate(1, 2));
+        CHECK(arbiter.validate(1, 3));
+        CHECK(arbiter.validate(1, 4));
+        CHECK(arbiter.validate(1, 5));
+        CHECK(arbiter.validate(1, 6));
+        CHECK(arbiter.validate(1, 7));
+        CHECK(arbiter.validate(1, 8));
+        CHECK(arbiter.validate(1, 9));      // next messages rolls over and clobbers line 0's position.
+        CHECK(arbiter.validate(1, 10));
+
+        CHECK(!arbiter.validate(0, 2));     // slow line sends values that should be dropped,
+        CHECK(!arbiter.validate(0, 1));     // send is out of order
+
+        auto& overruns = errorPolicy.overruns();
+        REQUIRE CHECK_EQUAL(1U, overruns.size());
+
+        CHECK_EQUAL(0U, overruns[0].first);     // slow line 0
+        CHECK_EQUAL(1U, overruns[0].second);    // overrun by line 1
+    }
+
+    TEST(verifySlowLineOverrunReported_6)
+    {
+        MockErrorReportingPolicy errorPolicy;
+        arbiter::SequenceArbiter<TwoLineTraits> arbiter(errorPolicy);
+
+        CHECK(arbiter.validate(1, 0));
+        CHECK(arbiter.validate(1, 1));
+        CHECK(arbiter.validate(1, 2));
+        CHECK(arbiter.validate(1, 3));
+        CHECK(arbiter.validate(1, 4));
+        CHECK(arbiter.validate(1, 5));
+        CHECK(arbiter.validate(1, 6));
+        CHECK(arbiter.validate(1, 7));
+        CHECK(arbiter.validate(1, 8));
+        CHECK(arbiter.validate(1, 9));      // next messages rolls over and clobbers line 0's position.
+        CHECK(arbiter.validate(1, 10));
+
+        CHECK(!arbiter.validate(0, 3));     // slow line startups again but gapped (0-2)
+        CHECK(!arbiter.validate(0, 4));
+
+        auto& overruns = errorPolicy.overruns();
+        REQUIRE CHECK_EQUAL(1U, overruns.size());
+
+        CHECK_EQUAL(0U, overruns[0].first);     // slow line 0
+        CHECK_EQUAL(1U, overruns[0].second);    // overrun by line 1
+    }
+
+    TEST(verifySlowLineOverrunReported_7)
+    {
+        MockErrorReportingPolicy errorPolicy;
+        arbiter::SequenceArbiter<TwoLineTraits> arbiter(errorPolicy);
+
+        CHECK(arbiter.validate(0, 0));
+        CHECK(arbiter.validate(0, 1));
+        CHECK(!arbiter.validate(1, 0));
+        CHECK(!arbiter.validate(1, 1));
+
+        CHECK(arbiter.validate(1, 2));
+        CHECK(arbiter.validate(1, 3));
+        CHECK(arbiter.validate(1, 4));
+        CHECK(arbiter.validate(1, 5));
+        CHECK(arbiter.validate(1, 6));
+        CHECK(arbiter.validate(1, 7));
+        CHECK(arbiter.validate(1, 8));
+        CHECK(arbiter.validate(1, 9));      // next message rolls over to position 0.
+        CHECK(arbiter.validate(1, 10));
+        CHECK(arbiter.validate(1, 11));     // this overruns line 0, line 0 gets bumped to next position.
+        CHECK(arbiter.validate(1, 12));     // this overruns line 0, line 0 gets bumped to next position.
+
+        CHECK(!arbiter.validate(0, 12));
+        CHECK(arbiter.validate(0, 13));
+
+        auto& overruns = errorPolicy.overruns();
+        REQUIRE CHECK_EQUAL(2U, overruns.size());
+
+        CHECK_EQUAL(0U, overruns[0].first);     // slow line 0
+        CHECK_EQUAL(1U, overruns[0].second);    // overrun by line 1
+
+        CHECK_EQUAL(0U, overruns[0].first);     // slow line 0
+        CHECK_EQUAL(1U, overruns[0].second);    // overrun by line 1
+    }
+
 }
