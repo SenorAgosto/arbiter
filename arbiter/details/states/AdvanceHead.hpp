@@ -39,7 +39,6 @@ namespace arbiter { namespace details {
     template<class Traits>
     void AdvanceHead<Traits>::checkForSlowLineOverrun(ArbiterCacheAdvancerContext<Traits>& context, const std::size_t lineId, const std::size_t nextPosition)
     {
-        // determine if the nextPosition is equal to any other lines besides our own.
         auto& positions = context.cache.positions;
 
         std::size_t positionLineId = 0;
