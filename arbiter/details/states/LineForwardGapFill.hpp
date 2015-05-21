@@ -15,6 +15,7 @@ namespace arbiter { namespace details {
 
     private:
         bool handleHeadOverrun(ArbiterCacheAdvancerContext<Traits>& context, const std::size_t lineId, const SequenceType sequenceNumber);
+        inline bool overrunsHead(const std::size_t headPosition, const std::size_t linePosition, const std::size_t gapPosition, const std::size_t historySize);
     };
 
 
@@ -29,7 +30,7 @@ namespace arbiter { namespace details {
         auto currentSequenceNumber = cache.history[position].sequence();
 
         auto gapPosition = (position + sequenceNumber - currentSequenceNumber);
-        auto passesHead = (position < headPosition) && (gapPosition > headPosition);
+        auto passesHead = overrunsHead(headPosition, position, gapPosition, cache.history.size());
 
         gapPosition %= cache.history.size();   // stay inbounds of history buffer
 
@@ -76,4 +77,21 @@ namespace arbiter { namespace details {
         HeadForwardGapFill<Traits> advancer;
         return advancer.advance(context, lineId, sequenceNumber);
     }
+
+    // @gapPosition is not adjusted by historySize yet, it is monotonically increasing.
+    template<class Traits>
+    bool LineForwardGapFill<Traits>::overrunsHead(const std::size_t headPosition, const std::size_t linePosition, const std::size_t gapPosition, const std::size_t historySize)
+    {
+        // Replacing the following with likely more performant version to avoid a branch.
+        //if(linePosition <= headPosition)
+        //{
+        //    return gapPosition > headPosition;
+        //}
+
+        //return gapPosition > (historySize + headPosition);
+
+        return ((linePosition <= headPosition) && (gapPosition > headPosition)) ||
+               ((linePosition >  headPosition) && (gapPosition > (historySize + headPosition)));
+    }
+
 }}
