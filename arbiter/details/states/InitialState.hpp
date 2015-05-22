@@ -40,6 +40,7 @@ namespace arbiter { namespace details {
     {
         if(sequenceNumber < Traits::FirstExpectedSequenceNumber())
         {
+            context.isFirstCall = true;
             context.errorPolicy.FirstSequenceNumberOutOfSequence(lineId, sequenceNumber);
             return false;
         }

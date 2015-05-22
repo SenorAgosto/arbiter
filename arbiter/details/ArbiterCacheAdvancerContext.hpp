@@ -9,13 +9,15 @@ namespace arbiter { namespace details {
     {
         using ErrorReportingPolicy = typename Traits::ErrorReportingPolicy;
 
-        ArbiterCacheAdvancerContext(ArbiterCache<Traits>& cacheIn, ErrorReportingPolicy& errorPolicyIn)
+        ArbiterCacheAdvancerContext(ArbiterCache<Traits>& cacheIn, ErrorReportingPolicy& errorPolicyIn, bool& isFirstCallIn)
             : cache(cacheIn)
             , errorPolicy(errorPolicyIn)
+            , isFirstCall(isFirstCallIn)
         {
         }
 
         ArbiterCache<Traits>& cache;
         ErrorReportingPolicy& errorPolicy;
+        bool& isFirstCall;
     };
 }}

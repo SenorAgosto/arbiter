@@ -33,8 +33,9 @@ namespace arbiter { namespace details {
         ArbiterCache<Traits>& cache_;
         ErrorReportingPolicy& errorPolicy_;
 
-        ArbiterCacheAdvancerContext<Traits> context_;
         bool isFirstCall_;
+
+        ArbiterCacheAdvancerContext<Traits> context_;
     };
 
 
@@ -42,8 +43,8 @@ namespace arbiter { namespace details {
     ArbiterCacheAdvancer<Traits>::ArbiterCacheAdvancer(ArbiterCache<Traits>& cache, ErrorReportingPolicy& error)
         : cache_(cache)
         , errorPolicy_(error)
-        , context_(cache, error)
         , isFirstCall_(true)
+        , context_(cache, error, isFirstCall_)
     {
     }
 
