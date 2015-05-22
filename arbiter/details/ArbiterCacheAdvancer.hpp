@@ -25,6 +25,9 @@ namespace arbiter { namespace details {
         // advance the cache position for @lineId up to @sequenceNumber
         bool operator()(const std::size_t lineId, const SequenceType sequenceNumber);
 
+        // reset the state of the ArbiterCacheAdvancer
+        void reset();
+
     private:
         ArbiterCacheAdvancerStateEnum determineState(const std::size_t lineId, const SequenceType sequenceNumber);
 
@@ -92,5 +95,11 @@ namespace arbiter { namespace details {
         return isHead ?
             ArbiterCacheAdvancerStateEnum::HeadForwardGapFill :
             ArbiterCacheAdvancerStateEnum::LineForwardGapFill;
+    }
+
+    template<class Traits>
+    void ArbiterCacheAdvancer<Traits>::reset()
+    {
+        isFirstCall_ = true;
     }
 }}
