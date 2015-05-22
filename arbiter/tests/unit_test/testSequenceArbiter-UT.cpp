@@ -312,6 +312,38 @@ namespace {
         CHECK(arbiter.validate(0, 7));
     }
 
+    TEST(verifySequenceArbiterResetsCorrectly)
+    {
+        MockErrorReportingPolicy errorPolicy;
+        arbiter::SequenceArbiter<SingleLineTraits> arbiter(errorPolicy);
+
+        CHECK(arbiter.validate(0, 0));
+        CHECK(arbiter.validate(0, 1));
+        CHECK(arbiter.validate(0, 2));
+        CHECK(arbiter.validate(0, 3));
+        CHECK(arbiter.validate(0, 4));
+
+        CHECK(!arbiter.validate(0, 0));
+        CHECK(!arbiter.validate(0, 1));
+        CHECK(!arbiter.validate(0, 2));
+        CHECK(!arbiter.validate(0, 3));
+        CHECK(!arbiter.validate(0, 4));
+
+        arbiter.reset();
+
+        CHECK(arbiter.validate(0, 2));
+        CHECK(arbiter.validate(0, 0));
+        CHECK(arbiter.validate(0, 1));
+        CHECK(arbiter.validate(0, 3));
+        CHECK(arbiter.validate(0, 4));
+
+        CHECK(!arbiter.validate(0, 2));
+        CHECK(!arbiter.validate(0, 3));
+        CHECK(!arbiter.validate(0, 4));
+        CHECK(!arbiter.validate(0, 1));
+        CHECK(!arbiter.validate(0, 0));
+    }
+
     struct TwoLineTraits
     {
         static constexpr std::size_t FirstExpectedSequenceNumber() { return 0; }
