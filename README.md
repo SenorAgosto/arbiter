@@ -24,9 +24,7 @@ The first sequence passed to the arbiter was less than the expected first sequen
 
 #### Duplicate on line
 
-A common use case for arbitration is for an application to send duplicate content on two streams for the purposes of redundancy. If we call our lines A and B, it would be normal to see the same sequence number arrive from line A and then later from line B. It would be abnormal to see the same sequence arrive on line A twice. 
-
-This error indicates we received the same sequence number multiple times on the _same_ line. Reporting this error condition is somewhat unique for our arbiter implementation.
+A common use case for arbitration is for an application to send duplicate content on two streams for the purposes of redundancy. If we call our lines A and B, it would be normal to see the same sequence number arrive from line A and then later from line B. This error indicates we received the same sequence number multiple times on the _same_ line. Reporting this error condition is somewhat unique for our arbiter implementation.
 
 #### Gap 
 
@@ -64,10 +62,6 @@ We implement no synchronization inside the arbiter, it is therefore not thread-s
 Used for unit testing on all platforms: 
 
 - [UnitTest++](https://github.com/unittest-cpp/unittest-cpp). Unit test framework.
-
-### Paper 
-
-Read the paper about the [Duplicates on a Line Error](http://SenorAgosto.github.io/arbiter/)
 
 ### Contributors 
 
