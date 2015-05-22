@@ -1083,4 +1083,30 @@ namespace {
         CHECK(arbiter.validate(0, 5));
         CHECK(arbiter.validate(0, 6));
     }
+
+    TEST(verifySequenceArbiterRejectsSequenceNumbersLessThanTheFirstExpectedSequenceNumberAfterAReset)
+    {
+        MockErrorReportingPolicy errorPolicy;
+        arbiter::SequenceArbiter<NonZeroFirstExpectedSequenceNumber> arbiter(errorPolicy);
+
+        CHECK(!arbiter.validate(0, 0));
+        CHECK(!arbiter.validate(0, 1));
+        CHECK(!arbiter.validate(0, 2));
+        CHECK(!arbiter.validate(0, 3));
+
+        CHECK(arbiter.validate(0, 4));
+        CHECK(arbiter.validate(0, 5));
+        CHECK(arbiter.validate(0, 6));
+
+        arbiter.reset();
+
+        CHECK(!arbiter.validate(0, 0));
+        CHECK(!arbiter.validate(0, 1));
+        CHECK(!arbiter.validate(0, 2));
+        CHECK(!arbiter.validate(0, 3));
+
+        CHECK(arbiter.validate(0, 4));
+        CHECK(arbiter.validate(0, 5));
+        CHECK(arbiter.validate(0, 6));
+    }
 }
