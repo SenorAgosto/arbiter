@@ -1057,4 +1057,30 @@ namespace {
         CHECK_EQUAL(1U, overruns[0].second);    // overrun by line 1
     }
 
+    struct NonZeroFirstExpectedSequenceNumber
+    {
+        static constexpr std::size_t FirstExpectedSequenceNumber() { return 4; }
+        static constexpr std::size_t LargestRecoverableGap() { return 5; }
+        static constexpr std::size_t NumberOfLines() { return 1; } 
+        static constexpr std::size_t HistoryDepth() { return 10; }
+
+        using SequenceType = std::size_t;
+        using ErrorReportingPolicy = MockErrorReportingPolicy;
+    };
+
+
+    TEST(verifySequenceArbiterRejectsSequenceNumbersLessThanTheFirstExpectedSequenceNumber)
+    {
+        MockErrorReportingPolicy errorPolicy;
+        arbiter::SequenceArbiter<NonZeroFirstExpectedSequenceNumber> arbiter(errorPolicy);
+
+        CHECK(!arbiter.validate(0, 0));
+        CHECK(!arbiter.validate(0, 1));
+        CHECK(!arbiter.validate(0, 2));
+        CHECK(!arbiter.validate(0, 3));
+
+        CHECK(arbiter.validate(0, 4));
+        CHECK(arbiter.validate(0, 5));
+        CHECK(arbiter.validate(0, 6));
+    }
 }
