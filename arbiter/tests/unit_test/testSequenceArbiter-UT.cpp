@@ -258,6 +258,57 @@ namespace {
         CHECK(arbiter.validate(0, 11));
     }
 
+    TEST(verifySequenceArbiterHandlesAGapThatsTooLarge)
+    {
+        MockErrorReportingPolicy errorReporter;
+        arbiter::SequenceArbiter<SingleLineTraits> arbiter(errorReporter);
+
+        CHECK(arbiter.validate(0, 0));
+
+        // gap 1-7, (1, 2, 3) should be unrecoverable...
+        CHECK(arbiter.validate(0, 8));
+
+        CHECK(!arbiter.validate(0, 1));     // verify unrecoverable are lost...
+        CHECK(!arbiter.validate(0, 2));
+
+        CHECK(arbiter.validate(0, 3));
+        CHECK(arbiter.validate(0, 4));
+        CHECK(arbiter.validate(0, 6));
+        CHECK(arbiter.validate(0, 7));
+        CHECK(arbiter.validate(0, 5));
+
+        auto& unrecoverable = errorReporter.unrecoverableGaps();
+        REQUIRE CHECK_EQUAL(1U, unrecoverable.size());
+
+        CHECK_EQUAL(1U, unrecoverable[0].first);
+        CHECK_EQUAL(2U, unrecoverable[0].second);
+    }
+
+    TEST(verifySequenceArbiterHandlesAGapThatsTooLargeWhenGapGoesOverHistoryBoundry)
+    {
+        MockErrorReportingPolicy errorReporter;
+        arbiter::SequenceArbiter<SingleLineTraits> arbiter(errorReporter);
+
+        CHECK(arbiter.validate(0, 0));
+        CHECK(arbiter.validate(0, 1));
+        CHECK(arbiter.validate(0, 2));
+        CHECK(arbiter.validate(0, 3));
+        CHECK(arbiter.validate(0, 4));
+
+        // gap 5 - 11
+        CHECK(arbiter.validate(0, 12));
+
+        // these are unrecoverable
+        CHECK(!arbiter.validate(0, 6));
+        CHECK(!arbiter.validate(0, 5));
+
+        CHECK(arbiter.validate(0, 11));
+        CHECK(arbiter.validate(0, 7));
+        CHECK(arbiter.validate(0, 8));
+        CHECK(arbiter.validate(0, 10));
+        CHECK(arbiter.validate(0, 9));
+    }
+
     TEST(verifySequenceArbiterHandlesGapFillsCorrectly)
     {
         MockErrorReportingPolicy errorReporter;
@@ -1087,6 +1138,42 @@ namespace {
 
         CHECK_EQUAL(0U, overruns[0].first);     // slow line 0
         CHECK_EQUAL(1U, overruns[0].second);    // overrun by line 1
+    }
+
+    TEST(verifySequenceArbiterHandlesSlowLineOverrunOnForwardGap)
+    {
+        MockErrorReportingPolicy errorPolicy;
+        arbiter::SequenceArbiter<TwoLineTraits> arbiter(errorPolicy);
+
+        CHECK(arbiter.validate(0, 0));
+        CHECK(arbiter.validate(0, 1));
+        CHECK(!arbiter.validate(1, 0));
+        CHECK(!arbiter.validate(1, 1));
+
+        CHECK(arbiter.validate(0, 2));
+        CHECK(arbiter.validate(0, 3));
+        CHECK(arbiter.validate(0, 4));
+        CHECK(arbiter.validate(0, 5));
+        CHECK(arbiter.validate(0, 6));
+        CHECK(arbiter.validate(0, 7));
+        CHECK(arbiter.validate(0, 8));
+
+        // gap 9 - 14
+        CHECK(arbiter.validate(0, 15));
+        CHECK(arbiter.validate(0, 16));
+
+        CHECK(!arbiter.validate(1, 2));     // unrecoverable
+        CHECK(!arbiter.validate(1, 3));
+        CHECK(!arbiter.validate(1, 4));
+
+        auto& overruns = errorPolicy.overruns();
+        REQUIRE CHECK_EQUAL(3U, overruns.size());
+
+        auto& unrecoverable = errorPolicy.unrecoverableGaps();
+        REQUIRE CHECK_EQUAL(1U, unrecoverable.size());
+
+        CHECK_EQUAL(9U, unrecoverable[0].first);
+        CHECK_EQUAL(1U, unrecoverable[0].second);
     }
 
     struct NonZeroFirstExpectedSequenceNumber
