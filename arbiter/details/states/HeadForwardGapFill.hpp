@@ -13,15 +13,14 @@ namespace arbiter { namespace details {
         bool advance(ArbiterCacheAdvancerContext<Traits>& context, const std::size_t lineId, const SequenceType sequenceNumber) override;
 
     private:
-        void handleUnrecoverableForwardGap(ArbiterCacheAdvancerContext<Traits>& context, const std::size_t lineId, const SequenceType sequenceNumber);
-        void reportGap(ArbiterCacheAdvancerContext<Traits>& context, const SequenceType currentSequenceNumber, const SequenceType endSequenceNumber);
+
+        inline void handleUnrecoverableForwardGap(ArbiterCacheAdvancerContext<Traits>& context, std::size_t& gapSize, SequenceType& currentSequenceNumber, const SequenceType& sequenceNumber);
+        void checkForSlowLineOverrun(ArbiterCacheAdvancerContext<Traits>& context, const std::size_t lineId, const std::size_t nextPosition);
     };
 
     template<class Traits>
     bool HeadForwardGapFill<Traits>::advance(ArbiterCacheAdvancerContext<Traits>& context, const std::size_t lineId, const SequenceType sequenceNumber)
     {
-        handleUnrecoverableForwardGap(context, lineId, sequenceNumber);
-
         auto& cache = context.cache;
         auto& positions = context.cache.positions;
 
@@ -29,11 +28,15 @@ namespace arbiter { namespace details {
         auto currentSequenceNumber = cache.history[position].sequence() + 1;
         position = cache.nextPosition(lineId);
 
-        const auto gapSize = sequenceNumber - currentSequenceNumber;
+        auto gapSize = sequenceNumber - currentSequenceNumber;
+        handleUnrecoverableForwardGap(context, gapSize, currentSequenceNumber, sequenceNumber);
+
         context.errorPolicy.Gap(currentSequenceNumber, gapSize);
 
         while(currentSequenceNumber < sequenceNumber)
         {
+            // [ARG]: TODO: perhaps move this out of the loop
+            checkForSlowLineOverrun(context, lineId, position);
             cache.history[position] = SequenceInfo(currentSequenceNumber++);
 
             cache.positions[lineId] = position;
@@ -46,26 +49,38 @@ namespace arbiter { namespace details {
         return true;
     }
 
+    template<class Traits>
+    void HeadForwardGapFill<Traits>::handleUnrecoverableForwardGap(ArbiterCacheAdvancerContext<Traits>& context, std::size_t& gapSize, SequenceType& currentSequenceNumber, const SequenceType& sequenceNumber)
+    {
+        if(gapSize > Traits::LargestRecoverableGap())
+        {
+            context.errorPolicy.UnrecoverableGap(currentSequenceNumber, gapSize - Traits::LargestRecoverableGap());
+
+            gapSize = Traits::LargestRecoverableGap();
+            currentSequenceNumber = sequenceNumber - Traits::LargestRecoverableGap();
+        }
+    }
 
     template<class Traits>
-    void HeadForwardGapFill<Traits>::handleUnrecoverableForwardGap(ArbiterCacheAdvancerContext<Traits>& /*context*/, const std::size_t /*lineId*/, const SequenceType /*sequenceNumber*/)
+    void HeadForwardGapFill<Traits>::checkForSlowLineOverrun(ArbiterCacheAdvancerContext<Traits>& context, const std::size_t lineId, const std::size_t nextPosition)
     {
-		// TODO: implement
-        // check to see if the gap is larger than our largest recoverable gap...
-/*        auto currentSequenceNumber = context.cache.history[context.cache.head].sequence();
+        auto& positions = context.cache.positions;
 
-        std::ptrdiff_t gapSize = sequenceNumber - currentSequenceNumber;
-
-        if(gapSize <= Traits::LargestRecoverableGapSize())
+        std::size_t positionLineId = 0;
+        for(auto& position : positions)
         {
+            if(positionLineId != lineId)
+            {
+                if(nextPosition == position)
+                {
+                    context.errorPolicy.LinePositionOverrun(positionLineId, lineId);
+                    position = (nextPosition + 1) % context.cache.history.size();
+                }
+            }
 
+            ++positionLineId;
         }
-        else
-        {
-            // report some values as unrecoverable gaps
-            context.errorPolicy.UnrecoverableGap();
-        }
-*/
     }
+
 
 }}
