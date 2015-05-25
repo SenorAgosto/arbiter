@@ -1165,6 +1165,22 @@ namespace {
         CHECK(!arbiter.validate(1, 2));     // unrecoverable
         CHECK(!arbiter.validate(1, 3));
         CHECK(!arbiter.validate(1, 4));
+        CHECK(!arbiter.validate(1, 15));
+        CHECK(arbiter.validate(1, 12));
+        CHECK(!arbiter.validate(1, 7));
+        CHECK(!arbiter.validate(1, 8));
+        CHECK(arbiter.validate(1, 10));
+        CHECK(arbiter.validate(1, 11));
+        CHECK(!arbiter.validate(1, 9));     // 9 is unrecoverable
+        CHECK(arbiter.validate(1, 13));
+        CHECK(arbiter.validate(1, 14));
+        CHECK(!arbiter.validate(1, 16));
+
+        CHECK(arbiter.validate(1, 17));
+        CHECK(!arbiter.validate(0, 17));
+
+        CHECK(arbiter.validate(0, 18));
+        CHECK(!arbiter.validate(1, 18));
 
         auto& overruns = errorPolicy.overruns();
         REQUIRE CHECK_EQUAL(3U, overruns.size());
