@@ -1,5 +1,7 @@
 # TODO
 
+- head forward gap fill needs to handle too large of a gap? 
+
 ### Think about 
 
 - Change uses of SequenceType to expect a wrapper with an interface? 
