@@ -1,6 +1,6 @@
 # TODO
 
-- head forward gap fill needs to handle too large of a gap? 
+- head forward gap fill needs to handle slow line overrun.
 - do some testing around SequenceType rollovers.
     - does advance head work correctly on a rollover?
     - does head forward gap work correctly crossing a rollover boundary? 
