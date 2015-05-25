@@ -48,8 +48,9 @@ namespace arbiter { namespace details {
 
 
     template<class Traits>
-    void HeadForwardGapFill<Traits>::handleUnrecoverableForwardGap(ArbiterCacheAdvancerContext<Traits>& context, const std::size_t lineId, const SequenceType sequenceNumber)
+    void HeadForwardGapFill<Traits>::handleUnrecoverableForwardGap(ArbiterCacheAdvancerContext<Traits>& /*context*/, const std::size_t /*lineId*/, const SequenceType /*sequenceNumber*/)
     {
+		// TODO: implement
         // check to see if the gap is larger than our largest recoverable gap...
 /*        auto currentSequenceNumber = context.cache.history[context.cache.head].sequence();
 
