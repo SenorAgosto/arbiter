@@ -48,9 +48,9 @@ namespace arbiter { namespace details {
 			position = 0;
 		}
 
-        for(auto& history : history)
+        for(auto& historyValue : history)
         {
-            history = SequenceInfo();
+            historyValue = SequenceInfo();
         }
     }
 
