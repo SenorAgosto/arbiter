@@ -1,6 +1,7 @@
 # TODO
 
-- head forward gap fill needs to handle slow line overrun.
+- head forward gap fill needs to handle slow line overrun better. Currently, I'm checking for an overrun each time through the loop, should probably calculate the overrun once for each other line and make the necessary adjustments. 
+
 - do some testing around SequenceType rollovers.
     - does advance head work correctly on a rollover?
     - does head forward gap work correctly crossing a rollover boundary? 
