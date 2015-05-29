@@ -15,10 +15,8 @@ if(WIN32)
 	
 	set(UNITTEST++_LIBRARIES "\\lib\\x64\\vc110\\UnitTestxx\\1.4\\lib\\debug\\UnitTest++.lib")
 else()
-	include_directories("/Volumes/austirg/homebrew/include/")
-	set(UNITTEST++_LIBRARIES "/Volumes/austirg/homebrew/lib/libUnitTest++.a")
-	#find_package(UnitTest++ REQUIRED)
-
+	find_package(UnitTest++ REQUIRED)
+    include_directories(${UNITTEST++_INCLUDE_DIRS})
 endif()
 
 add_executable( arbiter-UT ${implementation_files} ${interface_files} ${platform_files})
