@@ -1256,6 +1256,7 @@ namespace {
         using ErrorReportingPolicy = MockErrorReportingPolicy;
     };
 
+
     TEST(verifySlowLineOverrunForThreeLines)
     {
         MockErrorReportingPolicy errorPolicy;
@@ -1310,5 +1311,53 @@ namespace {
 
         CHECK_EQUAL(2U, overruns[4].first);     // 1 is the slow line
         CHECK_EQUAL(1U, overruns[4].second);    // overrun by line 2
+    }
+
+    TEST(verifySlowLineOverrunForThreeLinesWhereOverrunIsByForwardGap)
+    {
+        MockErrorReportingPolicy errorPolicy;
+        arbiter::SequenceArbiter<ThreeLineTraits> arbiter(errorPolicy);
+
+        // position lines 1 & 2
+        CHECK(arbiter.validate(1, 0));
+        CHECK(!arbiter.validate(2, 0));
+        CHECK(arbiter.validate(1, 1));
+        CHECK(!arbiter.validate(2, 1));
+        CHECK(arbiter.validate(1, 2));
+        CHECK(!arbiter.validate(2, 2));
+        CHECK(arbiter.validate(1, 3));
+        CHECK(arbiter.validate(1, 4));
+
+        // here comes the bull.
+        CHECK(!arbiter.validate(0, 0));
+        CHECK(!arbiter.validate(0, 1));
+        CHECK(!arbiter.validate(0, 2));
+        CHECK(!arbiter.validate(0, 3));
+        CHECK(!arbiter.validate(0, 4));
+        CHECK(arbiter.validate(0, 5));
+        CHECK(arbiter.validate(0, 6));
+        CHECK(arbiter.validate(0, 7));
+        CHECK(arbiter.validate(0, 8));
+        CHECK(arbiter.validate(0, 9));  // next message wraps in history buffer
+        CHECK(arbiter.validate(0, 10));
+        CHECK(arbiter.validate(0, 11));
+
+        // now we pass two slow lines with a forward gap
+        CHECK(arbiter.validate(0, 15));
+
+        auto& overruns = errorPolicy.overruns();
+        REQUIRE CHECK_EQUAL(4U, overruns.size());
+
+        CHECK_EQUAL(2U, overruns[0].first);     // line 2 is overrun
+        CHECK_EQUAL(0U, overruns[0].second);    // by line 0
+
+        CHECK_EQUAL(2U, overruns[1].first);     // line 2 is overrun
+        CHECK_EQUAL(0U, overruns[1].second);    // by line 0
+
+        CHECK_EQUAL(1U, overruns[2].first);
+        CHECK_EQUAL(0U, overruns[2].second);
+
+        CHECK_EQUAL(2U, overruns[3].first);
+        CHECK_EQUAL(0U, overruns[3].second);
     }
 }
