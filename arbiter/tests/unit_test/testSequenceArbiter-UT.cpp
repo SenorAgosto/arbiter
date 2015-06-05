@@ -1183,7 +1183,11 @@ namespace {
         CHECK(!arbiter.validate(1, 18));
 
         auto& overruns = errorPolicy.overruns();
-        REQUIRE CHECK_EQUAL(3U, overruns.size());
+        REQUIRE CHECK_EQUAL(1U, overruns.size());
+
+        CHECK_EQUAL(1U, overruns[0].first);     // line 1 is overrun by
+        CHECK_EQUAL(0U, overruns[0].second);    // line 0
+
 
         auto& unrecoverable = errorPolicy.unrecoverableGaps();
         REQUIRE CHECK_EQUAL(1U, unrecoverable.size());
@@ -1309,8 +1313,8 @@ namespace {
         CHECK_EQUAL(2U, overruns[3].first);     // 2 is the slow line
         CHECK_EQUAL(0U, overruns[3].second);    // overrun by line 0
 
-        CHECK_EQUAL(2U, overruns[4].first);     // 1 is the slow line
-        CHECK_EQUAL(1U, overruns[4].second);    // overrun by line 2
+        CHECK_EQUAL(2U, overruns[4].first);     // 2 is the slow line
+        CHECK_EQUAL(1U, overruns[4].second);    // overrun by line 1
     }
 
     TEST(verifySlowLineOverrunForThreeLinesWhereOverrunIsByForwardGap)
@@ -1346,18 +1350,51 @@ namespace {
         CHECK(arbiter.validate(0, 15));
 
         auto& overruns = errorPolicy.overruns();
-        REQUIRE CHECK_EQUAL(4U, overruns.size());
+        REQUIRE CHECK_EQUAL(2U, overruns.size());
 
-        CHECK_EQUAL(2U, overruns[0].first);     // line 2 is overrun
+        CHECK_EQUAL(1U, overruns[0].first);     // line 1 is overrun
+        CHECK_EQUAL(0U, overruns[0].second);    // by line 0
+
+        CHECK_EQUAL(2U, overruns[1].first);     // line 2 is overrun
+        CHECK_EQUAL(0U, overruns[1].second);    // by line 0
+    }
+
+    TEST(verifySlowLineOverrunForThreeLinesWhereOverrunWrapsAroundHistory)
+    {
+        MockErrorReportingPolicy errorPolicy;
+        arbiter::SequenceArbiter<ThreeLineTraits> arbiter(errorPolicy);
+
+        // position lines 1 & 2
+        CHECK(arbiter.validate(1, 0));
+        CHECK(!arbiter.validate(2, 0));     // leave line 2 at position 1
+        CHECK(arbiter.validate(1, 1));      // leave line 1 at position 2
+
+        // here comes the bull!
+        CHECK(!arbiter.validate(0, 0));
+        CHECK(!arbiter.validate(0, 1));
+        CHECK(arbiter.validate(0, 2));
+        CHECK(arbiter.validate(0, 3));
+        CHECK(arbiter.validate(0, 4));
+        CHECK(arbiter.validate(0, 5));
+        CHECK(arbiter.validate(0, 6));
+        CHECK(arbiter.validate(0, 7));
+        CHECK(arbiter.validate(0, 8));
+        CHECK(arbiter.validate(0, 9));      // next message wraps around history, but we're going to gap it.
+
+        // gap for 10 & 11.
+        CHECK(arbiter.validate(0, 12));
+
+        CHECK(arbiter.validate(1, 13));
+        CHECK(arbiter.validate(2, 14));
+
+        auto& overruns = errorPolicy.overruns();
+        REQUIRE CHECK_EQUAL(2U, overruns.size());
+
+        CHECK_EQUAL(1U, overruns[0].first);     // line 1 is overrun
         CHECK_EQUAL(0U, overruns[0].second);    // by line 0
 
         CHECK_EQUAL(2U, overruns[1].first);     // line 2 is overrun
         CHECK_EQUAL(0U, overruns[1].second);    // by line 0
 
-        CHECK_EQUAL(1U, overruns[2].first);
-        CHECK_EQUAL(0U, overruns[2].second);
-
-        CHECK_EQUAL(2U, overruns[3].first);
-        CHECK_EQUAL(0U, overruns[3].second);
     }
 }

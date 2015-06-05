@@ -15,7 +15,8 @@ namespace arbiter { namespace details {
     private:
 
         inline void handleUnrecoverableForwardGap(ArbiterCacheAdvancerContext<Traits>& context, std::size_t& gapSize, SequenceType& currentSequenceNumber, const SequenceType& sequenceNumber);
-        void checkForSlowLineOverrun(ArbiterCacheAdvancerContext<Traits>& context, const std::size_t lineId, const std::size_t nextPosition);
+        void checkForSlowLineOverrun(ArbiterCacheAdvancerContext<Traits>& context, const std::size_t lineId, const std::size_t position, const std::size_t gapSize);
+        inline bool overrunsLine(const std::size_t position, const std::size_t linePosition, const std::size_t gapPosition, const std::size_t historySize);
     };
 
     template<class Traits>
@@ -33,10 +34,11 @@ namespace arbiter { namespace details {
 
         context.errorPolicy.Gap(currentSequenceNumber, gapSize);
 
+        auto gapPosition = positions[lineId] + gapSize;
+        checkForSlowLineOverrun(context, lineId, position, gapPosition);
+
         while(currentSequenceNumber < sequenceNumber)
         {
-            // [ARG]: TODO: perhaps move this out of the loop
-            checkForSlowLineOverrun(context, lineId, position);
             cache.history[position] = SequenceInfo(currentSequenceNumber++);
 
             cache.positions[lineId] = position;
@@ -62,19 +64,19 @@ namespace arbiter { namespace details {
     }
 
     template<class Traits>
-    void HeadForwardGapFill<Traits>::checkForSlowLineOverrun(ArbiterCacheAdvancerContext<Traits>& context, const std::size_t lineId, const std::size_t nextPosition)
+    void HeadForwardGapFill<Traits>::checkForSlowLineOverrun(ArbiterCacheAdvancerContext<Traits>& context, const std::size_t lineId, const std::size_t position, const std::size_t gapPosition)
     {
         auto& positions = context.cache.positions;
 
         std::size_t positionLineId = 0;
-        for(auto& position : positions)
+        for(auto& linePosition : positions)
         {
             if(positionLineId != lineId)
             {
-                if(nextPosition == position)
+                if(overrunsLine(position, linePosition, gapPosition, context.cache.history.size()))
                 {
                     context.errorPolicy.LinePositionOverrun(positionLineId, lineId);
-                    position = (nextPosition + 1) % context.cache.history.size();
+                    linePosition = (gapPosition + 1) % context.cache.history.size();
                 }
             }
 
@@ -82,5 +84,10 @@ namespace arbiter { namespace details {
         }
     }
 
-
+    template<class Traits>
+    bool HeadForwardGapFill<Traits>::overrunsLine(const std::size_t position, const std::size_t linePosition, const std::size_t gapPosition, const std::size_t historySize)
+    {
+        return ((position <= linePosition) && (gapPosition >= linePosition)) ||
+               ((position > linePosition) && (gapPosition >= (historySize + linePosition)));
+    }
 }}
