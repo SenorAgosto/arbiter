@@ -1,6 +1,10 @@
 # TODO
 
-- head forward gap fill needs to handle slow line overrun better. Currently, I'm checking for an overrun each time through the loop, should probably calculate the overrun once for each other line and make the necessary adjustments. 
+- improve unit testing to prove resulting states are correct. Implement a unit test accessor as a friend to the sequence arbiter and contained classes. 
+
+- look at possible memory size reductions if they're available. 
+
+- move the errorPolicy into sequence arbiter and expose it through a function. Also support external errorPolicy as a reference through the reference handle idiom. 
 
 - do some testing around SequenceType rollovers.
     - does advance head work correctly on a rollover?
