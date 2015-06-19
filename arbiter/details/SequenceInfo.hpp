@@ -27,8 +27,8 @@ namespace arbiter { namespace details {
 		inline void sequence(const SequenceType seq);
 
 	private:
-        LineSet lines_;
 		SequenceType sequence_;
+        LineSet lines_;
 	};
 	
 
