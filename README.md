@@ -65,6 +65,10 @@ Used for unit testing on all platforms:
 
 - [UnitTest++](https://github.com/unittest-cpp/unittest-cpp). Unit test framework.
 
+### Paper 
+
+Read the paper about the [Duplicates on a Line Error](http://paxos1977.github.io/arbiter/)
+
 ### Contributors 
 
 Austin Gilbert <ceretullis@gmail.com>
