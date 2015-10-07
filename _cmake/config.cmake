@@ -1,9 +1,5 @@
 include_directories(${CMAKE_SOURCE_DIR})
 
-if(DEFINED SCAN_BUILD)
-    message("Building with static analysis settings, SCAN_BUILD=${SCAN_BUILD}.")
-endif()
-
 # test and load appropriate platform configurations 
 if(WIN32)
     include(_cmake/platforms/win32.cmake)
