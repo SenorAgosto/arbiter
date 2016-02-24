@@ -1,10 +1,8 @@
-add_definitions(
-	    --std=c++11
-)
-
 # ANALYSIS will be defined when using scan-build
-if(NOT DEFINED ANALYSIS)
+if(NOT DEFINED SCAN_BUILD)
     add_definitions(
+            --std=c++11
+
             -Wall
             -Wextra 
 
