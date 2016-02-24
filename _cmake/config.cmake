@@ -1,7 +1,7 @@
 include_directories(${CMAKE_SOURCE_DIR})
 
-if(DEFINED ANALYSIS)
-    message("Building with static analysis settings, ANALYSIS=${ANALYSIS}.")
+if(DEFINED SCAN_BUILD)
+    message("Building with static analysis settings, SCAN_BUILD=${SCAN_BUILD}.")
 endif()
 
 # test and load appropriate platform configurations 
