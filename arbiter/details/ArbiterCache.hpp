@@ -1,8 +1,9 @@
-#pragma once 
+#pragma once
 #include <arbiter/details/SequenceInfo.hpp>
 
 #include <array>
 #include <cstddef>
+#include <limits>
 
 namespace arbiter { namespace details {
 
