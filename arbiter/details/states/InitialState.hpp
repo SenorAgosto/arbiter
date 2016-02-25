@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 #include <arbiter/details/ArbiterCacheAdvancerState.hpp>
 
 namespace arbiter { namespace details {
@@ -8,7 +8,7 @@ namespace arbiter { namespace details {
     {
     public:
         using SequenceType = typename Traits::SequenceType;
-        using SequenceInfo = SequenceInfo<SequenceType, Traits::NumberOfLines()>;
+        using SeqInfo = SequenceInfo<SequenceType, Traits::NumberOfLines()>;
 
         bool advance(ArbiterCacheAdvancerContext<Traits>& context, const std::size_t lineId, const SequenceType sequenceNumber) override;
 
@@ -27,7 +27,7 @@ namespace arbiter { namespace details {
             return handleInitialGap(context, lineId, sequenceNumber);
         }
 
-        context.cache.history[position] = SequenceInfo(lineId, sequenceNumber);
+        context.cache.history[position] = SeqInfo(lineId, sequenceNumber);
 
         context.cache.positions[lineId] = position;
         context.cache.head = lineId;
@@ -65,7 +65,7 @@ namespace arbiter { namespace details {
 
         while(nextSequenceNumber < sequenceNumber)
         {
-            cache.history[position] = SequenceInfo(nextSequenceNumber++);
+            cache.history[position] = SeqInfo(nextSequenceNumber++);
             positions[lineId] = position;
 
             position = cache.nextPosition(lineId);
@@ -73,7 +73,7 @@ namespace arbiter { namespace details {
 
         positions[lineId] = position;
 
-        cache.history[position] = SequenceInfo(lineId, sequenceNumber);
+        cache.history[position] = SeqInfo(lineId, sequenceNumber);
         cache.head = lineId;
 
         return true;

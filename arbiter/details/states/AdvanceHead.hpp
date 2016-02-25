@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 #include <arbiter/details/ArbiterCacheAdvancerState.hpp>
 
 namespace arbiter { namespace details {
@@ -9,13 +9,13 @@ namespace arbiter { namespace details {
     public:
         using ErrorReportingPolicy = typename Traits::ErrorReportingPolicy;
         using SequenceType = typename Traits::SequenceType;
-        using SequenceInfo = SequenceInfo<SequenceType, Traits::NumberOfLines()>;
+        using SeqInfo = SequenceInfo<SequenceType, Traits::NumberOfLines()>;
 
         bool advance(ArbiterCacheAdvancerContext<Traits>& context, const std::size_t lineId, const SequenceType sequenceNumber) override;
 
     private:
         void checkForSlowLineOverrun(ArbiterCacheAdvancerContext<Traits>& context, const std::size_t lineId, const std::size_t nextPosition);
-        void handleGaps(const SequenceInfo& sequenceInfo, ErrorReportingPolicy& errorPolicy);
+        void handleGaps(const SeqInfo& sequenceInfo, ErrorReportingPolicy& errorPolicy);
     };
 
 
@@ -30,7 +30,7 @@ namespace arbiter { namespace details {
         checkForSlowLineOverrun(context, lineId, nextPosition);
         handleGaps(sequenceInfo, context.errorPolicy);
 
-        cache.history[nextPosition] = SequenceInfo(lineId, sequenceNumber);
+        cache.history[nextPosition] = SeqInfo(lineId, sequenceNumber);
         cache.positions[lineId] = nextPosition;
 
         return true;    // new sequence number, accept the message
@@ -58,7 +58,7 @@ namespace arbiter { namespace details {
     }
 
     template<class Traits>
-    void AdvanceHead<Traits>::handleGaps(const SequenceInfo& sequenceInfo, ErrorReportingPolicy& errorPolicy)
+    void AdvanceHead<Traits>::handleGaps(const SeqInfo& sequenceInfo, ErrorReportingPolicy& errorPolicy)
     {
         if(!sequenceInfo.complete())
         {
