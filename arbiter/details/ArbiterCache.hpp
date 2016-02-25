@@ -12,7 +12,7 @@ namespace arbiter { namespace details {
     {
     public:
         using SequenceType = typename Traits::SequenceType;
-        using SequenceInfo = details::SequenceInfo<SequenceType, Traits::NumberOfLines()>;
+        using SeqInfo = details::SequenceInfo<SequenceType, Traits::NumberOfLines()>;
 
         // verify Traits has these constexpr functions...
 		static_assert(std::is_same<SequenceType, decltype(Traits::FirstExpectedSequenceNumber())>::value, "Traits::FirstExpectedSequenceNumber() has mismatched type. Type must be the same as SequenceType");
@@ -26,7 +26,7 @@ namespace arbiter { namespace details {
 
     public:
 		std::array<std::size_t, Traits::NumberOfLines()> positions;	// tracks where each line is in cache_.
-		std::array<SequenceInfo, Traits::HistoryDepth()> history;      // stores the sequence counts.
+		std::array<SeqInfo, Traits::HistoryDepth()> history;      // stores the sequence counts.
 
         std::size_t head;  // indicates the line which is ahead.
     };
@@ -51,7 +51,7 @@ namespace arbiter { namespace details {
 
         for(auto& historyValue : history)
         {
-            historyValue = SequenceInfo();
+            historyValue = SeqInfo();
         }
     }
 

@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 #include <arbiter/details/ArbiterCacheAdvancerState.hpp>
 
 namespace arbiter { namespace details {
@@ -8,7 +8,7 @@ namespace arbiter { namespace details {
     {
     public:
         using SequenceType = typename Traits::SequenceType;
-        using SequenceInfo = SequenceInfo<SequenceType, Traits::NumberOfLines()>;
+        using SeqInfo = SequenceInfo<SequenceType, Traits::NumberOfLines()>;
 
         bool advance(ArbiterCacheAdvancerContext<Traits>& context, const std::size_t lineId, const SequenceType sequenceNumber) override;
 
