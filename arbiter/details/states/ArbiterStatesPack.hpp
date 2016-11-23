@@ -31,6 +31,9 @@ namespace arbiter { namespace details {
     template<class Traits>
     ArbiterCacheAdvancerState<Traits>& ArbiterStatesPack<Traits>::operator[](ArbiterCacheAdvancerStateEnum state)
     {
+        // performance note: using a switch statement here turned
+        // out to be faster than a vector-lookup with pointer dereference
+
         // order by frequency of occurance...
         switch(state)
         {
