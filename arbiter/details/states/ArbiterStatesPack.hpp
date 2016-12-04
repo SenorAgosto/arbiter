@@ -12,13 +12,37 @@
 namespace arbiter { namespace details {
 
     // Instantiate all the ArbiterCacheAdvancerStates and
-    // overload the operator[] for getting a reference to them.
+    // implement the advance() interface.
     template<class Traits>
     class ArbiterStatesPack
     {
     public:
-        ArbiterCacheAdvancerState<Traits>& operator[](ArbiterCacheAdvancerStateEnum state);
-
+        using SequenceType = typename Traits::SequenceType;
+        
+        // perf: defining this method explicitly inline is giving the best performance
+        bool advance(const ArbiterCacheAdvancerStateEnum state, ArbiterCacheAdvancerContext<Traits>& context, const std::size_t lineId, const SequenceType sequenceNumber)
+        {
+            switch(state)
+            {
+                case ArbiterCacheAdvancerStateEnum::AdvanceHead:
+                    return advanceHead_.advance(context, lineId, sequenceNumber);
+                case ArbiterCacheAdvancerStateEnum::AdvanceLine:
+                    return advanceLine_.advance(context, lineId, sequenceNumber);
+                case ArbiterCacheAdvancerStateEnum::GapFill:
+                    return gapFill_.advance(context, lineId, sequenceNumber);
+                case ArbiterCacheAdvancerStateEnum::HeadForwardGapFill:
+                    return headForwardGapFill_.advance(context, lineId, sequenceNumber);
+                case ArbiterCacheAdvancerStateEnum::LineForwardGapFill:
+                    return lineForwardGapFill_.advance(context, lineId, sequenceNumber);
+                case ArbiterCacheAdvancerStateEnum::InitialState:
+                    return initialState_.advance(context, lineId, sequenceNumber);
+                case ArbiterCacheAdvancerStateEnum::NumberOfEntries:
+                    break;  // fall through
+            };
+            
+            throw ArbiterCacheAdvancerStateEnumOutOfRange(static_cast<std::size_t>(state));
+        }
+        
     private:
         InitialState<Traits> initialState_;
         AdvanceHead<Traits> advanceHead_;
@@ -27,32 +51,4 @@ namespace arbiter { namespace details {
         HeadForwardGapFill<Traits> headForwardGapFill_;
         LineForwardGapFill<Traits> lineForwardGapFill_;
     };
-
-    template<class Traits>
-    ArbiterCacheAdvancerState<Traits>& ArbiterStatesPack<Traits>::operator[](ArbiterCacheAdvancerStateEnum state)
-    {
-        // performance note: using a switch statement here turned
-        // out to be faster than a vector-lookup with pointer dereference
-
-        // order by frequency of occurance...
-        switch(state)
-        {
-        case ArbiterCacheAdvancerStateEnum::AdvanceHead:
-            return advanceHead_;
-        case ArbiterCacheAdvancerStateEnum::AdvanceLine:
-            return advanceLine_;
-        case ArbiterCacheAdvancerStateEnum::GapFill:
-            return gapFill_;
-        case ArbiterCacheAdvancerStateEnum::HeadForwardGapFill:
-            return headForwardGapFill_;
-        case ArbiterCacheAdvancerStateEnum::LineForwardGapFill:
-            return lineForwardGapFill_;
-        case ArbiterCacheAdvancerStateEnum::InitialState:
-            return initialState_;
-        case ArbiterCacheAdvancerStateEnum::NumberOfEntries:
-            break;  // fall through
-        };
-
-        throw ArbiterCacheAdvancerStateEnumOutOfRange(static_cast<std::size_t>(state));
-    }
 }}
