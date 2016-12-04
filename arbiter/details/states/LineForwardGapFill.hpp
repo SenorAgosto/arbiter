@@ -1,5 +1,6 @@
 #pragma once 
-#include <arbiter/details/ArbiterCacheAdvancerState.hpp>
+#include <arbiter/details/ArbiterCacheAdvancerContext.hpp>
+#include <cstddef>
 
 #include <arbiter/details/states/AdvanceHead.hpp>
 #include <arbiter/details/states/HeadForwardGapFill.hpp>
@@ -7,11 +8,11 @@
 namespace arbiter { namespace details {
 
     template<class Traits>
-    class LineForwardGapFill : public ArbiterCacheAdvancerState<Traits>
+    class LineForwardGapFill
     {
     public:
         using SequenceType = typename Traits::SequenceType;
-        bool advance(ArbiterCacheAdvancerContext<Traits>& context, const std::size_t lineId, const SequenceType sequenceNumber) override;
+        bool advance(ArbiterCacheAdvancerContext<Traits>& context, const std::size_t lineId, const SequenceType sequenceNumber);
 
     private:
         bool handleHeadOverrun(ArbiterCacheAdvancerContext<Traits>& context, const std::size_t lineId, const SequenceType sequenceNumber);

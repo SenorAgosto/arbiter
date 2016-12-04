@@ -52,10 +52,10 @@ namespace arbiter { namespace details {
     }
 
     template<class Traits>
+    inline
     bool ArbiterCacheAdvancer<Traits>::operator()(const std::size_t lineId, const SequenceType sequenceNumber)
     {
-        ArbiterCacheAdvancerStateEnum state = determineState(lineId, sequenceNumber);
-        return states_[state].advance(context_, lineId, sequenceNumber);
+        return states_.advance(determineState(lineId, sequenceNumber), context_, lineId, sequenceNumber);
     }
 
     template<class Traits>

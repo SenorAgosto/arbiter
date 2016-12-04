@@ -1,16 +1,17 @@
 #pragma once
-#include <arbiter/details/ArbiterCacheAdvancerState.hpp>
+#include <arbiter/details/ArbiterCacheAdvancerContext.hpp>
+#include <cstddef>
 
 namespace arbiter { namespace details {
 
     template<class Traits>
-    class GapFill : public ArbiterCacheAdvancerState<Traits>
+    class GapFill
     {
     public:
         using SequenceType = typename Traits::SequenceType;
         using SeqInfo = SequenceInfo<SequenceType, Traits::NumberOfLines()>;
 
-        bool advance(ArbiterCacheAdvancerContext<Traits>& context, const std::size_t lineId, const SequenceType sequenceNumber) override;
+        bool advance(ArbiterCacheAdvancerContext<Traits>& context, const std::size_t lineId, const SequenceType sequenceNumber);
 
     private:
         inline std::size_t calculateGapPosition(const std::size_t cacheSize, const std::size_t position, const SequenceType currentSequenceNumber, const SequenceType sequenceNumber);
