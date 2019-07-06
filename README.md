@@ -67,7 +67,7 @@ Used for unit testing on all platforms:
 
 ### Paper 
 
-Read the paper about the [Duplicates on a Line Error](http://paxos1977.github.io/arbiter/)
+Read the paper about the [Duplicates on a Line Error](http://SenorAgosto.github.io/arbiter/)
 
 ### Contributors 
 
